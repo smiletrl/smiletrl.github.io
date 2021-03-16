@@ -1,281 +1,65 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>featured on Golang Develop</title><link>https://smiletrl.github.io/tags/featured/</link><description>Recent content in featured on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Sun, 14 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/tags/featured/index.xml" rel="self" type="application/rss+xml"/><item><title>Golang escape analysis</title><link>https://smiletrl.github.io/post/golang-escape-analysis/</link><pubDate>Sun, 14 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-escape-analysis/</guid><description>
-&lt;p>This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p>
-&lt;h2 id="headings">Headings&lt;/h2>
-&lt;p>The following HTML &lt;code>&amp;lt;h1&amp;gt;&lt;/code>—&lt;code>&amp;lt;h6&amp;gt;&lt;/code> elements represent six levels of section headings. &lt;code>&amp;lt;h1&amp;gt;&lt;/code> is the highest section level while &lt;code>&amp;lt;h6&amp;gt;&lt;/code> is the lowest.&lt;/p>
-&lt;h1 id="h1">H1&lt;/h1>
-&lt;h2 id="h2">H2&lt;/h2>
-&lt;h3 id="h3">H3&lt;/h3>
-&lt;h4 id="h4">H4&lt;/h4>
-&lt;h5 id="h5">H5&lt;/h5>
-&lt;h6 id="h6">H6&lt;/h6>
-&lt;h2 id="paragraph">Paragraph&lt;/h2>
-&lt;p>Xerum, dsddquo qusci aut unt expliquam qui dolut labo. Aque venitatiusda cum, voluptionse latur sitiae dolessi aut parist aut dollo enim qui voluptate ma dolestendit peritin re plis aut quas inctum laceat est volestemque commosa as cus endigna tectur, offic to cor sequas etum rerum idem sintibus eiur? Quianimin porecus evelectur, cum que nis nust voloribus ratem aut omnimi, sitatur? Quiatem. Nam, omnis sum am facea corem alique molestrunt et eos evelece arcillit ut aut eos eos nus, sin conecerem erum fuga. Ri oditatquam, ad quibus unda veliamenimin cusam et facea ipsamus es exerum sitate dolores editium rerore eost, temped molorro ratiae volorro te reribus dolorer sperchicium faceata tiustia prat.&lt;/p>
-&lt;p>Itatur? Quiatae cullecum rem ent aut odis in re eossequodi nonsequ idebis ne sapicia is sinveli squiatum, core et que aut hariosam ex eat.&lt;/p>
-&lt;h2 id="blockquotes">Blockquotes&lt;/h2>
-&lt;p>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a &lt;code>footer&lt;/code> or &lt;code>cite&lt;/code> element, and optionally with in-line changes such as annotations and abbreviations.&lt;/p>
-&lt;h4 id="blockquote-without-attribution">Blockquote without attribution&lt;/h4>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>featured on Golang Develop</title><link>https://smiletrl.github.io/tags/featured/</link><description>Recent content in featured on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/tags/featured/index.xml" rel="self" type="application/rss+xml"/><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
+&lt;p>This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p>
+&lt;h2 id="terraform-apply-error">Terraform Apply Error&lt;/h2>
+&lt;p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p>
 &lt;blockquote>
-&lt;p>Tiam, ad mint andaepu dandae nostion secatur sequo quae.
-&lt;strong>Note&lt;/strong> that you can use &lt;em>Markdown syntax&lt;/em> within a blockquote.&lt;/p>
+&lt;p>&lt;code>Error:&lt;/code> Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.&lt;/p>
 &lt;/blockquote>
-&lt;h4 id="blockquote-with-attribution">Blockquote with attribution&lt;/h4>
-&lt;blockquote>
-&lt;p>Don't communicate by sharing memory, share memory by communicating.&lt;br>
-— &lt;cite>Rob Pike&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>&lt;/cite>&lt;/p>
-&lt;/blockquote>
-&lt;h2 id="tables">Tables&lt;/h2>
-&lt;p>Tables aren't part of the core Markdown spec, but Hugo supports supports them out-of-the-box.&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Age&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>Bob&lt;/td>
-&lt;td>27&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Alice&lt;/td>
-&lt;td>23&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h4 id="inline-markdown-within-tables">Inline Markdown within tables&lt;/h4>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Italics&lt;/th>
-&lt;th>Bold&lt;/th>
-&lt;th>Code&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;em>italics&lt;/em>&lt;/td>
-&lt;td>&lt;strong>bold&lt;/strong>&lt;/td>
-&lt;td>&lt;code>code&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h2 id="code-blocks">Code Blocks&lt;/h2>
-&lt;h4 id="code-block-with-backticks">Code block with backticks&lt;/h4>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="ln"> 1&lt;/span>&lt;span class="cp">&amp;lt;!doctype html&amp;gt;&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">html&lt;/span> &lt;span class="na">lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;en&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">meta&lt;/span> &lt;span class="na">charset&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Example HTML5 Document&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 6&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Test&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="c">&amp;lt;!-- this line is extraneous 2Error from server (Forbidden): deployments.apps is forbidden: User &amp;#34;chiptest&amp;#34; cannot create resource &amp;#34;deployments&amp;#34; in API group &amp;#34;apps&amp;#34; in the namespace &amp;#34;default&amp;#34; --&amp;gt;&lt;/span>
-&lt;span class="ln">11&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="code-block-indented-with-four-spaces">Code block indented with four spaces&lt;/h4>
-&lt;pre>&lt;code>&amp;lt;!doctype html&amp;gt;
-&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
-&amp;lt;head&amp;gt;
-&amp;lt;meta charset=&amp;quot;utf-8&amp;quot;&amp;gt;
-&amp;lt;title&amp;gt;Example HTML5 Document&amp;lt;/title&amp;gt;
-&amp;lt;/head&amp;gt;
-&amp;lt;body&amp;gt;
-&amp;lt;p&amp;gt;Test&amp;lt;/p&amp;gt;
-&amp;lt;/body&amp;gt;
-&amp;lt;/html&amp;gt;
-&lt;/code>&lt;/pre>
-&lt;h4 id="code-block-with-hugos-internal-highlight-shortcode">Code block with Hugo's internal highlight shortcode&lt;/h4>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="ln"> 1&lt;/span>&lt;span class="cp">&amp;lt;!doctype html&amp;gt;&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">html&lt;/span> &lt;span class="na">lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;en&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">meta&lt;/span> &lt;span class="na">charset&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Example HTML5 Document&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 6&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Test&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;h2 id="list-types">List Types&lt;/h2>
-&lt;h4 id="ordered-list">Ordered List&lt;/h4>
-&lt;ol>
-&lt;li>First item&lt;/li>
-&lt;li>Second item&lt;/li>
-&lt;li>Third item&lt;/li>
-&lt;/ol>
-&lt;h4 id="unordered-list">Unordered List&lt;/h4>
-&lt;ul>
-&lt;li>List item&lt;/li>
-&lt;li>Another item&lt;/li>
-&lt;li>And another item&lt;/li>
-&lt;/ul>
-&lt;h4 id="nested-list">Nested list&lt;/h4>
-&lt;ul>
-&lt;li>Fruit
-&lt;ul>
-&lt;li>Apple&lt;/li>
-&lt;li>Orange&lt;/li>
-&lt;li>Banana&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Dairy
-&lt;ul>
-&lt;li>Milk&lt;/li>
-&lt;li>Cheese&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="other-elements--abbr-sub-sup-kbd-mark">Other Elements — abbr, sub, sup, kbd, mark&lt;/h2>
-&lt;p>&lt;abbr title="Graphics Interchange Format">GIF&lt;/abbr> is a bitmap image format.&lt;/p>
-&lt;p>H&lt;sub>2&lt;/sub>O&lt;/p>
-&lt;p>X&lt;sup>n&lt;/sup> + Y&lt;sup>n&lt;/sup> = Z&lt;sup>n&lt;/sup>&lt;/p>
-&lt;p>Press &lt;kbd>&lt;kbd>CTRL&lt;/kbd>+&lt;kbd>ALT&lt;/kbd>+&lt;kbd>Delete&lt;/kbd>&lt;/kbd> to end the session.&lt;/p>
-&lt;p>Most &lt;mark>salamanders&lt;/mark> are nocturnal, and hunt for insects, worms, and other small creatures.&lt;/p>
-&lt;section class="footnotes" role="doc-endnotes">
-&lt;hr>
-&lt;ol>
-&lt;li id="fn:1" role="doc-endnote">
-&lt;p>The above quote is excerpted from Rob Pike's &lt;a href="https://www.youtube.com/watch?v=PAAkCSZUG1c">talk&lt;/a> during Gopherfest, November 18, 2015. &lt;a href="#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;/section></description></item><item><title>Golang slice analysis</title><link>https://smiletrl.github.io/post/golang-slice-escape/</link><pubDate>Sun, 14 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-slice-escape/</guid><description>
-&lt;p>This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p>
-&lt;h2 id="headings">Headings&lt;/h2>
-&lt;p>The following HTML &lt;code>&amp;lt;h1&amp;gt;&lt;/code>—&lt;code>&amp;lt;h6&amp;gt;&lt;/code> elements represent six levels of section headings. &lt;code>&amp;lt;h1&amp;gt;&lt;/code> is the highest section level while &lt;code>&amp;lt;h6&amp;gt;&lt;/code> is the lowest.&lt;/p>
-&lt;h1 id="h1">H1&lt;/h1>
-&lt;h2 id="h2">H2&lt;/h2>
-&lt;h3 id="h3">H3&lt;/h3>
-&lt;h4 id="h4">H4&lt;/h4>
-&lt;h5 id="h5">H5&lt;/h5>
-&lt;h6 id="h6">H6&lt;/h6>
-&lt;h2 id="paragraph">Paragraph&lt;/h2>
-&lt;p>Xerum, quo qui weaut unt expliquam qui dolut labo. Aque venitatiusda cum, voluptionse latur sitiae dolessi aut parist aut dollo enim qui voluptate ma dolestendit peritin re plis aut quas inctum laceat est volestemque commosa as cus endigna tectur, offic to cor sequas etum rerum idem sintibus eiur? Quianimin porecus evelectur, cum que nis nust voloribus ratem aut omnimi, sitatur? Quiatem. Nam, omnis sum am facea corem alique molestrunt et eos evelece arcillit ut aut eos eos nus, sin conecerem erum fuga. Ri oditatquam, ad quibus unda veliamenimin cusam et facea ipsamus es exerum sitate dolores editium rerore eost, temped molorro ratiae volorro te reribus dolorer sperchicium faceata tiustia prat.&lt;/p>
-&lt;p>Itatur? Quiatae cullecum rem ent aut odis in re eossequodi nonsequ idebis ne sapicia is sinveli squiatum, core et que aut hariosam ex eat.&lt;/p>
-&lt;h2 id="blockquotes">Blockquotes&lt;/h2>
-&lt;p>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a &lt;code>footer&lt;/code> or &lt;code>cite&lt;/code> element, and optionally with in-line changes such as annotations and abbreviations.&lt;/p>
-&lt;h4 id="blockquote-without-attribution">Blockquote without attribution&lt;/h4>
-&lt;blockquote>
-&lt;p>Tiam, ad mint andaepu dandae nostion secatur sequo quae.
-&lt;strong>Note&lt;/strong> that you can use &lt;em>Markdown syntax&lt;/em> within a blockquote.&lt;/p>
-&lt;/blockquote>
-&lt;h4 id="blockquote-with-attribution">Blockquote with attribution&lt;/h4>
-&lt;blockquote>
-&lt;p>Don't communicate by sharing memory, share memory by communicating.&lt;br>
-— &lt;cite>Rob Pike&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>&lt;/cite>&lt;/p>
-&lt;/blockquote>
-&lt;h2 id="tables">Tables&lt;/h2>
-&lt;p>Tables aren't part of the core Markdown spec, but Hugo supports supports them out-of-the-box.&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Age&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>Bob&lt;/td>
-&lt;td>27&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Alice&lt;/td>
-&lt;td>23&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h4 id="inline-markdown-within-tables">Inline Markdown within tables&lt;/h4>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Italics&lt;/th>
-&lt;th>Bold&lt;/th>
-&lt;th>Code&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;em>italics&lt;/em>&lt;/td>
-&lt;td>&lt;strong>bold&lt;/strong>&lt;/td>
-&lt;td>&lt;code>code&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h2 id="code-blocks">Code Blocks&lt;/h2>
-&lt;h4 id="code-block-with-backticks">Code block with backticks&lt;/h4>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="ln"> 1&lt;/span>&lt;span class="cp">&amp;lt;!doctype html&amp;gt;&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">html&lt;/span> &lt;span class="na">lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;en&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">meta&lt;/span> &lt;span class="na">charset&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Example HTML5 Document&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 6&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Test&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="c">&amp;lt;!-- this line is extraneous 2Error from server (Forbidden): deployments.apps is forbidden: User &amp;#34;chiptest&amp;#34; cannot create resource &amp;#34;deployments&amp;#34; in API group &amp;#34;apps&amp;#34; in the namespace &amp;#34;default&amp;#34; --&amp;gt;&lt;/span>
-&lt;span class="ln">11&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="code-block-indented-with-four-spaces">Code block indented with four spaces&lt;/h4>
-&lt;pre>&lt;code>&amp;lt;!doctype html&amp;gt;
-&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
-&amp;lt;head&amp;gt;
-&amp;lt;meta charset=&amp;quot;utf-8&amp;quot;&amp;gt;
-&amp;lt;title&amp;gt;Example HTML5 Document&amp;lt;/title&amp;gt;
-&amp;lt;/head&amp;gt;
-&amp;lt;body&amp;gt;
-&amp;lt;p&amp;gt;Test&amp;lt;/p&amp;gt;
-&amp;lt;/body&amp;gt;
-&amp;lt;/html&amp;gt;
-&lt;/code>&lt;/pre>
-&lt;h4 id="code-block-with-hugos-internal-highlight-shortcode">Code block with Hugo's internal highlight shortcode&lt;/h4>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="ln"> 1&lt;/span>&lt;span class="cp">&amp;lt;!doctype html&amp;gt;&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">html&lt;/span> &lt;span class="na">lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;en&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">meta&lt;/span> &lt;span class="na">charset&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Example HTML5 Document&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 6&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">head&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>Test&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">p&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">html&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;h2 id="list-types">List Types&lt;/h2>
-&lt;h4 id="ordered-list">Ordered List&lt;/h4>
-&lt;ol>
-&lt;li>First item&lt;/li>
-&lt;li>Second item&lt;/li>
-&lt;li>Third item&lt;/li>
-&lt;/ol>
-&lt;h4 id="unordered-list">Unordered List&lt;/h4>
-&lt;ul>
-&lt;li>List item&lt;/li>
-&lt;li>Another item&lt;/li>
-&lt;li>And another item&lt;/li>
-&lt;/ul>
-&lt;h4 id="nested-list">Nested list&lt;/h4>
-&lt;ul>
-&lt;li>Fruit
-&lt;ul>
-&lt;li>Apple&lt;/li>
-&lt;li>Orange&lt;/li>
-&lt;li>Banana&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Dairy
-&lt;ul>
-&lt;li>Milk&lt;/li>
-&lt;li>Cheese&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="other-elements--abbr-sub-sup-kbd-mark">Other Elements — abbr, sub, sup, kbd, mark&lt;/h2>
-&lt;p>&lt;abbr title="Graphics Interchange Format">GIF&lt;/abbr> is a bitmap image format.&lt;/p>
-&lt;p>H&lt;sub>2&lt;/sub>O&lt;/p>
-&lt;p>X&lt;sup>n&lt;/sup> + Y&lt;sup>n&lt;/sup> = Z&lt;sup>n&lt;/sup>&lt;/p>
-&lt;p>Press &lt;kbd>&lt;kbd>CTRL&lt;/kbd>+&lt;kbd>ALT&lt;/kbd>+&lt;kbd>Delete&lt;/kbd>&lt;/kbd> to end the session.&lt;/p>
-&lt;p>Most &lt;mark>salamanders&lt;/mark> are nocturnal, and hunt for insects, worms, and other small creatures.&lt;/p>
-&lt;section class="footnotes" role="doc-endnotes">
-&lt;hr>
-&lt;ol>
-&lt;li id="fn:1" role="doc-endnote">
-&lt;p>The above quote is excerpted from Rob Pike's &lt;a href="https://www.youtube.com/watch?v=PAAkCSZUG1c">talk&lt;/a> during Gopherfest, November 18, 2015. &lt;a href="#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;/section></description></item></channel></rss>
+&lt;p>It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then &lt;code>terraform apply&lt;/code> will not try to create it again.&lt;/p>
+&lt;p>Before we start run import command, it might be a good idea to run &lt;code>aws s3 ls&lt;/code> to get a list of existing s3 buckets at aws. Result is like:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% aws s3 ls
+&lt;span class="ln">2&lt;/span>2021-03-15 12:03:25 s3-bucket-name1
+&lt;span class="ln">3&lt;/span>2021-03-15 13:06:25 s3-bucket-name2
+&lt;span class="ln">4&lt;/span>2021-03-15 13:06:05 s3-bucket-name3&lt;/code>&lt;/pre>&lt;/div>
+&lt;h2 id="terraform-import---method-one">Terraform Import - method one&lt;/h2>
+&lt;p>According to the &lt;a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket">S3 official Doc&lt;/a>, S3 bucket can be imported using&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ terraform import aws_s3_bucket.mybucket s3-bucket-name&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>This command will work for s3 resource declaration like:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name&amp;#34;&lt;/span>
+&lt;span class="ln"> 3&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">server_side_encryption_configuration&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">rule&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">apply_server_side_encryption_by_default&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 7&lt;/span> &lt;span class="na">kms_master_key_id&lt;/span> = &lt;span class="nx">aws_kms_key&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mykey&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="na">sse_algorithm&lt;/span> = &lt;span class="s2">&amp;#34;aws:kms&amp;#34;&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>There's a &lt;a href="https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5">great article&lt;/a> with more details you may check.&lt;/p>
+&lt;h2 id="terraform-import---method-two">Terraform Import - method two&lt;/h2>
+&lt;p>Method one works fine for one bucket, but in case there're different modules reusing the same S3 bucket resource, then there might be problem to make it work.&lt;/p>
+&lt;p>For example, we have infrastructure directory structure&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>|-- modules
+&lt;span class="ln">2&lt;/span>| |-- s3
+&lt;span class="ln">3&lt;/span>| | |--main.tf
+&lt;span class="ln">4&lt;/span>|-- prod
+&lt;span class="ln">5&lt;/span>| |-- main.tf
+&lt;span class="ln">6&lt;/span>|-- staging
+&lt;span class="ln">7&lt;/span>| |-- main.tf&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>File &lt;code>/modules/s3/main.tf&lt;/code> is having content:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;span class="ln">3&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">4&lt;/span>&lt;span class="kr">
+&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="kr">variable&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">6&lt;/span> &lt;span class="na">type&lt;/span> = &lt;span class="nx">string&lt;/span>
+&lt;span class="ln">7&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>File &lt;code>/prod/main.tf&lt;/code> and &lt;code>/staging/main.tf&lt;/code> may have content:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-1&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">2&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
+&lt;span class="ln">3&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name1&amp;#34;&lt;/span>
+&lt;span class="ln">4&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">5&lt;/span>&lt;span class="kr">
+&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-2&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">7&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
+&lt;span class="ln">8&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name2&amp;#34;&lt;/span>
+&lt;span class="ln">9&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>In this case, we will use &lt;a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import&lt;/a> to import the S3 bucket.&lt;/p>
+&lt;p>We may cd into directory &lt;code>/prod&lt;/code>, and run command like below:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
+&lt;span class="ln">2&lt;/span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>Now, when we run &lt;code>terraform plan&lt;/code> again, it will not try to create the two buckets any more.&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item></channel></rss>
