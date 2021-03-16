@@ -3,51 +3,36 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://smiletrl.github.io/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/about/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/categories/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/tags/css/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/tags/featured/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/post/golang-escape-analysis/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/post/golang-slice-escape/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/tags/html/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/tags/markdown/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/post/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/series/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/categories/syntax/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/tags/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://smiletrl.github.io/tags/themes/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <loc>https://smiletrl.github.io/series/terraform/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://smiletrl.github.io/categories/themes/</loc>
-    <lastmod>2021-03-14T00:00:00+00:00</lastmod>
+    <loc>https://smiletrl.github.io/tags/terraform/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://smiletrl.github.io/series/themes-guide/</loc>
+    <loc>https://smiletrl.github.io/categories/terraform/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://smiletrl.github.io/post/terraform-import-s3-bucket/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://smiletrl.github.io/about/</loc>
     <lastmod>2021-03-14T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/tags/index/</loc>

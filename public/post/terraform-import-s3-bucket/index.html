@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" data-figures="" class="page">
   <head>
-<title>About | Golang Develop</title>
+<title>Terraform import aws s3 bucket | Golang Develop</title>
 <meta charset="utf-8">
 <meta name="generator" content="Hugo 0.81.0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -18,14 +18,14 @@
 <meta property="og:locale" content="en" />
 
 <meta property="og:type" content="article">
-<meta name="description" content="smiletrl, a Golang developer, with interest in PostgresSQL, distributed system, and high performance coding. ">
+<meta name="description" content="terraform import aws s3 bucket">
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:creator" content="">
-<meta name="twitter:title" content="About" />
-<meta property="og:url" content="https://smiletrl.github.io/about/" />
-<meta property="og:title" content="About" />
-<meta property="og:description" content="smiletrl, a Golang developer, with interest in PostgresSQL, distributed system, and high performance coding. " />
-<meta property="og:image" content="https://smiletrl.github.io/images/thumbnail.png" />
+<meta name="twitter:title" content="Terraform import aws s3 bucket" />
+<meta property="og:url" content="https://smiletrl.github.io/post/terraform-import-s3-bucket/" />
+<meta property="og:title" content="Terraform import aws s3 bucket" />
+<meta property="og:description" content="terraform import aws s3 bucket" />
+<meta property="og:image" content="https://smiletrl.github.io/images/building.png" />
 <link rel="apple-touch-icon" sizes="180x180" href='https://smiletrl.github.io/icons/apple-touch-icon.png'>
 <link rel="icon" type="image/png" sizes="32x32" href='https://smiletrl.github.io/icons/favicon-32x32.png'>
 <link rel="manifest" href='https://smiletrl.github.io/icons/site.webmanifest'>
@@ -33,7 +33,7 @@
 <meta name="msapplication-TileColor" content="#002538">
 <meta name="theme-color" content="#002538">
 
-<link rel="canonical" href="https://smiletrl.github.io/about/">
+<link rel="canonical" href="https://smiletrl.github.io/post/terraform-import-s3-bucket/">
 
     
 
@@ -64,7 +64,7 @@
   <div class="nav_parent">
     <a href="https://smiletrl.github.io/" class="nav_item" title="Home">Home </a>
   </div>
-  <div class="nav_parent nav_active">
+  <div class="nav_parent">
     <a href="https://smiletrl.github.io/about/" class="nav_item" title="About">About </a>
   </div>
       
@@ -93,24 +93,28 @@
   
 <div class="grid-inverse wrap content">
   <article class="post_content">
-    <h1 class="post_title">About</h1><div class="post_meta">
+    <h1 class="post_title">Terraform import aws s3 bucket</h1><div class="post_meta">
   
     <svg class="icon">
   <use xlink:href="#calendar"></use>
 </svg>
     <span class="post_date">
-      Mar 14, 2021</span>
+      Mar 16, 2021</span>
+      <a href='https://smiletrl.github.io/tags/terraform' title="terraform" class="post_tag button button_translucent">terraform
+      </a>
+      <a href='https://smiletrl.github.io/tags/featured' title="featured" class="post_tag button button_translucent">featured
+      </a>
 </div>
 
     
   <div class="post_share">
     Share on:
-    <a href="https://twitter.com/intent/tweet?text=About&url=https%3a%2f%2fsmiletrl.github.io%2fabout%2f&tw_p=tweetbutton" class="twitter" title="Share on Twitter" target="_blank" rel="nofollow">
+    <a href="https://twitter.com/intent/tweet?text=Terraform%20import%20aws%20s3%20bucket&url=https%3a%2f%2fsmiletrl.github.io%2fpost%2fterraform-import-s3-bucket%2f&tw_p=tweetbutton" class="twitter" title="Share on Twitter" target="_blank" rel="nofollow">
       <svg class="icon">
   <use xlink:href="#twitter"></use>
 </svg>
     </a>
-    <a href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fsmiletrl.github.io%2fabout%2f&t=About" class="facebook" title="Share on Facebook" target="_blank" rel="nofollow">
+    <a href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fsmiletrl.github.io%2fpost%2fterraform-import-s3-bucket%2f&t=Terraform%20import%20aws%20s3%20bucket" class="facebook" title="Share on Facebook" target="_blank" rel="nofollow">
       <svg class="icon">
   <use xlink:href="#facebook"></use>
 </svg>
@@ -120,7 +124,7 @@
   <use xlink:href="#linkedin"></use>
 </svg>
     </a>
-    <a href="https://smiletrl.github.io/about/" title="Copy Link" class="link link_yank">
+    <a href="https://smiletrl.github.io/post/terraform-import-s3-bucket/" title="Copy Link" class="link link_yank">
       <svg class="icon">
   <use xlink:href="#copy"></use>
 </svg>
@@ -128,9 +132,70 @@
   </div>
 
     
-    <p>I'm (Rulin Tang, based in China) a golang developer with interest in PostgresSQL, distributed system, and high performance coding.</p>
-<p>Before golang, I was involved with <a href="https://github.com/u/smiletrl">Drupal</a>, a CMS written in PHP.</p>
-
+    <p>This post shows two possible methods to import aws s3 buckets into terraform state.</p>
+<h2 id="terraform-apply-error">Terraform Apply Error</h2>
+<p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:</p>
+<blockquote>
+<p><code>Error:</code> Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.</p>
+</blockquote>
+<p>It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then <code>terraform apply</code> will not try to create it again.</p>
+<p>Before we start run import command, it might be a good idea to run <code>aws s3 ls</code> to get a list of existing s3 buckets at aws. Result is like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>% aws s3 ls
+<span class="ln">2</span>2021-03-15 12:03:25 s3-bucket-name1
+<span class="ln">3</span>2021-03-15 13:06:25 s3-bucket-name2
+<span class="ln">4</span>2021-03-15 13:06:05 s3-bucket-name3</code></pre></div>
+<h2 id="terraform-import---method-one">Terraform Import - method one</h2>
+<p>According to the <a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket">S3 official Doc</a>, S3 bucket can be imported using</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>$ terraform import aws_s3_bucket.mybucket s3-bucket-name</code></pre></div>
+<p>This command will work for s3 resource declaration like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="kr">resource</span> <span class="s2">&#34;aws_s3_bucket&#34;</span> <span class="s2">&#34;mybucket&#34;</span> <span class="p">{</span>
+<span class="ln"> 2</span>  <span class="na">bucket</span> = <span class="s2">&#34;s3-bucket-name&#34;</span>
+<span class="ln"> 3</span>
+<span class="ln"> 4</span>  <span class="nx">server_side_encryption_configuration</span> <span class="p">{</span>
+<span class="ln"> 5</span>    <span class="nx">rule</span> <span class="p">{</span>
+<span class="ln"> 6</span>      <span class="nx">apply_server_side_encryption_by_default</span> <span class="p">{</span>
+<span class="ln"> 7</span>        <span class="na">kms_master_key_id</span> = <span class="nx">aws_kms_key</span><span class="p">.</span><span class="nx">mykey</span><span class="p">.</span><span class="nx">arn</span>
+<span class="ln"> 8</span>        <span class="na">sse_algorithm</span>     = <span class="s2">&#34;aws:kms&#34;</span>
+<span class="ln"> 9</span>      <span class="p">}</span>
+<span class="ln">10</span>    <span class="p">}</span>
+<span class="ln">11</span>  <span class="p">}</span>
+<span class="ln">12</span><span class="p">}</span></code></pre></div>
+<p>There's a <a href="https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5">great article</a> with more details you may check.</p>
+<h2 id="terraform-import---method-two">Terraform Import - method two</h2>
+<p>Method one works fine for one bucket, but in case there're different modules reusing the same S3 bucket resource, then there might be problem to make it work.</p>
+<p>For example, we have infrastructure directory structure</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>|-- modules
+<span class="ln">2</span>|   |-- s3
+<span class="ln">3</span>|   |   |--main.tf
+<span class="ln">4</span>|-- prod
+<span class="ln">5</span>|   |-- main.tf
+<span class="ln">6</span>|-- staging
+<span class="ln">7</span>|   |-- main.tf</code></pre></div>
+<p>File <code>/modules/s3/main.tf</code> is having content:</p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln">1</span><span class="kr">resource</span> <span class="s2">&#34;aws_s3_bucket&#34;</span> <span class="s2">&#34;mybucket&#34;</span> <span class="p">{</span>
+<span class="ln">2</span>  <span class="na">bucket</span> = <span class="s2">&#34;</span><span class="si">${</span><span class="nb">var</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s2">&#34;</span>
+<span class="ln">3</span><span class="p">}</span>
+<span class="ln">4</span><span class="kr">
+</span><span class="ln">5</span><span class="kr">variable</span> <span class="s2">&#34;name&#34;</span> <span class="p">{</span>
+<span class="ln">6</span>    <span class="na">type</span> = <span class="nx">string</span>
+<span class="ln">7</span><span class="p">}</span></code></pre></div>
+<p>File <code>/prod/main.tf</code> and <code>/staging/main.tf</code> may have content:</p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln">1</span><span class="kr">module</span> <span class="s2">&#34;s3-bucket-1&#34;</span> <span class="p">{</span>
+<span class="ln">2</span>    <span class="na">source</span> = <span class="s2">&#34;../modules/s3&#34;</span>
+<span class="ln">3</span>    <span class="na">name</span> = <span class="s2">&#34;s3-bucket-name1&#34;</span>
+<span class="ln">4</span><span class="p">}</span>
+<span class="ln">5</span><span class="kr">
+</span><span class="ln">6</span><span class="kr">module</span> <span class="s2">&#34;s3-bucket-2&#34;</span> <span class="p">{</span>
+<span class="ln">7</span>    <span class="na">source</span> = <span class="s2">&#34;../modules/s3&#34;</span>
+<span class="ln">8</span>    <span class="na">name</span> = <span class="s2">&#34;s3-bucket-name2&#34;</span>
+<span class="ln">9</span><span class="p">}</span></code></pre></div>
+<p>In this case, we will use <a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import</a> to import the S3 bucket.</p>
+<p>We may cd into directory <code>/prod</code>, and run command like below:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
+<span class="ln">2</span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2</code></pre></div>
+<p>Now, when we run <code>terraform plan</code> again, it will not try to create the two buckets any more.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)</p>
 
   </article>
 <aside class="sidebar">
@@ -141,17 +206,8 @@
         Gopher with interest in postgreSQL, distributed system, and high performance coding.
       </div>
       <a href='https://smiletrl.github.io/about/' class="button mt-1" role="button" title='Read More'>Read More</a>
-    <h2 class="mt-4">Featured Posts</h2>
-    <ul>
-      <li>
-        <a href="https://smiletrl.github.io/post/terraform-import-s3-bucket/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
-      </li>
-    </ul>
     <h2 class="mt-4">Recent Posts</h2>
     <ul class="flex-column">
-      <li>
-        <a href="https://smiletrl.github.io/post/terraform-import-s3-bucket/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
-      </li>
     </ul>
     <div>
       <h2 class="mt-4 taxonomy" id="categories-section">Categories</h2>

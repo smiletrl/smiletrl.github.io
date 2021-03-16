@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>featured on Golang Develop</title>
-    <link>https://smiletrl.github.io/tags/featured/</link>
-    <description>Recent content in featured on Golang Develop</description>
+    <title>Terraform on Golang Develop</title>
+    <link>https://smiletrl.github.io/series/terraform/</link>
+    <description>Recent content in Terraform on Golang Develop</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>Copyright © 2021, all rights reserved.</copyright>
-    <lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/tags/featured/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/series/terraform/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Terraform import aws s3 bucket</title>
       <link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link>
