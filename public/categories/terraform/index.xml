@@ -73,7 +73,7 @@
 &lt;span class=&#34;ln&#34;&gt;8&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;name&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-name2&amp;#34;&lt;/span&gt;
 &lt;span class=&#34;ln&#34;&gt;9&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;In this case, we will use &lt;a href=&#34;https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module&#34;&gt;module import&lt;/a&gt; to import the S3 bucket.&lt;/p&gt;
-&lt;p&gt;We may cd into directory &lt;code&gt;/prod&lt;/code&gt;, and run command like below:&lt;/p&gt;
+&lt;p&gt;We may &lt;code&gt;cd&lt;/code&gt; into directory &lt;code&gt;/prod&lt;/code&gt;, and run command like below:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
 &lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Now, when we run &lt;code&gt;terraform plan&lt;/code&gt; again, it will not try to create the two buckets any more.&lt;/p&gt;

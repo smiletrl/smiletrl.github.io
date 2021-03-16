@@ -190,7 +190,7 @@
 <span class="ln">8</span>    <span class="na">name</span> = <span class="s2">&#34;s3-bucket-name2&#34;</span>
 <span class="ln">9</span><span class="p">}</span></code></pre></div>
 <p>In this case, we will use <a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import</a> to import the S3 bucket.</p>
-<p>We may cd into directory <code>/prod</code>, and run command like below:</p>
+<p>We may <code>cd</code> into directory <code>/prod</code>, and run command like below:</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
 <span class="ln">2</span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2</code></pre></div>
 <p>Now, when we run <code>terraform plan</code> again, it will not try to create the two buckets any more.</p>

@@ -108,7 +108,7 @@ module "s3-bucket-2" {
 
 In this case, we will use [module import](https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module) to import the S3 bucket.
 
-We may cd into directory `/prod`, and run command like below:
+We may `cd` into directory `/prod`, and run command like below:
 
 {{< highlight text >}}
 % terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
