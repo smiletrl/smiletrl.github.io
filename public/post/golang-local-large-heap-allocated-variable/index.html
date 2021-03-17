@@ -238,10 +238,9 @@
 <span class="ln">22</span><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{}</span>
 </code></pre></div>
 <p>With this change, <code>n.Type.Width</code> value becomes <code>10MiB + 40Byte</code>. This time, we get:</p>
-<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln">1</span><span class="nx">smiletrl</span><span class="err">@</span><span class="nx">Rulins</span><span class="o">-</span><span class="nx">MacBook</span><span class="o">-</span><span class="nx">Pro</span> <span class="nx">example2</span> <span class="o">%</span> <span class="k">go</span> <span class="nx">build</span> <span class="o">-</span><span class="nx">gcflags</span><span class="p">=</span><span class="s">&#34;-m -l&#34;</span>
-<span class="ln">2</span><span class="err">#</span> <span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">smiletrl</span><span class="o">/</span><span class="nx">golang_escape</span><span class="o">/</span><span class="nx">pkg</span><span class="o">/</span><span class="nx">example2</span>
-<span class="ln">3</span><span class="p">.</span><span class="o">/</span><span class="nx">case1</span><span class="p">.</span><span class="k">go</span><span class="p">:</span><span class="mi">11</span><span class="p">:</span><span class="mi">6</span><span class="p">:</span> <span class="nx">moved</span> <span class="nx">to</span> <span class="nx">heap</span><span class="p">:</span> <span class="nx">emps</span>
-</code></pre></div>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>smiletrl@Rulins-MacBook-Pro example2 % go build -gcflags=&#34;-m -l&#34;
+<span class="ln">2</span># github.com/smiletrl/golang_escape/pkg/example2
+<span class="ln">3</span>./case1.go:11:6: moved to heap: emps</code></pre></div>
 <p>Cool! We see the variable <code>var emps</code> has been moved to heap!</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>Now that we know the exact size of a local <code>large</code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.</p>

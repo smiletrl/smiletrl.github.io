@@ -151,7 +151,7 @@ func main() {}
  
 With this change, `n.Type.Width` value becomes `10MiB + 40Byte`. This time, we get:
  
-{{< highlight golang >}}
+{{< highlight text >}}
 smiletrl@Rulins-MacBook-Pro example2 % go build -gcflags="-m -l"
 # github.com/smiletrl/golang_escape/pkg/example2
 ./case1.go:11:6: moved to heap: emps
