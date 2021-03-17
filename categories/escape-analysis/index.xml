@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang Develop</title><link>https://smiletrl.github.io/</link><description>Recent content on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Escape analysis on Golang Develop</title><link>https://smiletrl.github.io/categories/escape-analysis/</link><description>Recent content in Escape analysis on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/categories/escape-analysis/index.xml" rel="self" type="application/rss+xml"/><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
 &lt;p>This post shows how a local variable will be &lt;code>large&lt;/code> enough to be allocated to heap.&lt;/p>
 &lt;h2 id="stack-or-heap">Stack or heap&lt;/h2>
 &lt;p>Stack is usually more efficient for variable allocation than heap. There're plenty of articles online explaining why stack allocation is much faster, especially for Golang. So I'm not going to talk about the difference between stack and heap in the article.&lt;/p>
@@ -111,68 +111,4 @@
 &lt;p>Now that we know the exact size of a local &lt;code>large&lt;/code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.&lt;/p>
 &lt;p>It's not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.&lt;/p>
 &lt;p>For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)&lt;/p>
-&lt;p>You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
-&lt;p>This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p>
-&lt;h2 id="terraform-apply-error">Terraform Apply Error&lt;/h2>
-&lt;p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p>
-&lt;blockquote>
-&lt;p>&lt;code>Error:&lt;/code> Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.&lt;/p>
-&lt;/blockquote>
-&lt;p>It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then &lt;code>terraform apply&lt;/code> will not try to create it again.&lt;/p>
-&lt;p>Before we start run import command, it might be a good idea to run &lt;code>aws s3 ls&lt;/code> to get a list of existing s3 buckets at aws. Result is like:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% aws s3 ls
-&lt;span class="ln">2&lt;/span>2021-03-15 12:03:25 s3-bucket-name1
-&lt;span class="ln">3&lt;/span>2021-03-15 13:06:25 s3-bucket-name2
-&lt;span class="ln">4&lt;/span>2021-03-15 13:06:05 s3-bucket-name3&lt;/code>&lt;/pre>&lt;/div>
-&lt;h2 id="terraform-import---method-one">Terraform Import - method one&lt;/h2>
-&lt;p>According to the &lt;a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket">S3 official Doc&lt;/a>, S3 bucket can be imported using&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ terraform import aws_s3_bucket.mybucket s3-bucket-name&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>This command will work for s3 resource declaration like:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name&amp;#34;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">server_side_encryption_configuration&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">rule&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">apply_server_side_encryption_by_default&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 7&lt;/span> &lt;span class="na">kms_master_key_id&lt;/span> = &lt;span class="nx">aws_kms_key&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mykey&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="na">sse_algorithm&lt;/span> = &lt;span class="s2">&amp;#34;aws:kms&amp;#34;&lt;/span>
-&lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">10&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">12&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>There's a &lt;a href="https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5">great article&lt;/a> with more details you may check.&lt;/p>
-&lt;h2 id="terraform-import---method-two">Terraform Import - method two&lt;/h2>
-&lt;p>Method one works fine for one bucket, but in case there're different modules reusing the same S3 bucket resource, then there might be problem to make it work.&lt;/p>
-&lt;p>For example, we have infrastructure directory structure&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>|-- modules
-&lt;span class="ln">2&lt;/span>| |-- s3
-&lt;span class="ln">3&lt;/span>| | |--main.tf
-&lt;span class="ln">4&lt;/span>|-- prod
-&lt;span class="ln">5&lt;/span>| |-- main.tf
-&lt;span class="ln">6&lt;/span>|-- staging
-&lt;span class="ln">7&lt;/span>| |-- main.tf&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>File &lt;code>/modules/s3/main.tf&lt;/code> is having content:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
-&lt;span class="ln">3&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">4&lt;/span>&lt;span class="kr">
-&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="kr">variable&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">6&lt;/span> &lt;span class="na">type&lt;/span> = &lt;span class="nx">string&lt;/span>
-&lt;span class="ln">7&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>File &lt;code>/prod/main.tf&lt;/code> and &lt;code>/staging/main.tf&lt;/code> may have content:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-1&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">2&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
-&lt;span class="ln">3&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name1&amp;#34;&lt;/span>
-&lt;span class="ln">4&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">5&lt;/span>&lt;span class="kr">
-&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-2&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">7&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
-&lt;span class="ln">8&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name2&amp;#34;&lt;/span>
-&lt;span class="ln">9&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>In this case, we will use &lt;a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import&lt;/a> to import the S3 bucket.&lt;/p>
-&lt;p>We may &lt;code>cd&lt;/code> into directory &lt;code>/prod&lt;/code>, and run command like below:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
-&lt;span class="ln">2&lt;/span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>Now, when we run &lt;code>terraform plan&lt;/code> again, it will not try to create the two buckets any more.&lt;/p>
-&lt;h2 id="conclusion">Conclusion&lt;/h2>
-&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item></channel></rss>
+&lt;p>You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item></channel></rss>
