@@ -7,70 +7,73 @@
 &lt;p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.&lt;/p>
 &lt;/blockquote>
 &lt;p>I guess most go developers (including me ^) will be curious about how &lt;code>large&lt;/code> is large that a local variable will be allocated to heap. For Go 1.15, the answer is &lt;code>10MiB&lt;/code>. See &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19">gc/go.go&lt;/a>&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="nb">var&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 2&lt;/span>&lt;span class="c1"> // maximum size variable which we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1"> // This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
-&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1"> // Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="na">maxStackVarSize&lt;/span> = &lt;span class="nx">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="m">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="m">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="m">1024&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1"> // maximum size of implicit variables that we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1"> // p := new(T) allocating T on the stack
-&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1"> // p := &amp;amp;T{} allocating T on the stack
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1"> // s := make([]T, n) allocating [n]T on the stack
-&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1"> // s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
-&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1"> // Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln">13&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="na">maxImplicitStackVarSize&lt;/span> = &lt;span class="nx">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="m">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="m">1024&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;span class="ln">14&lt;/span>&lt;span class="p">)&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="c1">// maximum size variable which we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
+&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>
+&lt;span class="ln"> 7&lt;/span> &lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := new(T) allocating T on the stack
+&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
+&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
+&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
+&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln">13&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">14&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
 &lt;p>and &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go&lt;/a>&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="nx">func&lt;/span> &lt;span class="nx">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">bool&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 2&lt;/span> &lt;span class="nx">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Type&lt;/span> =&lt;span class="o">=&lt;/span> &lt;span class="nx">nil&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 3&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 6&lt;/span>&lt;span class="c1"> // Parameters are always passed via the stack.
-&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Op&lt;/span> =&lt;span class="o">=&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 3&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 5&lt;/span>
+&lt;span class="ln"> 6&lt;/span> &lt;span class="c1">// Parameters are always passed via the stack.
+&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
 &lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
 &lt;span class="ln">10&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="nx">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
 &lt;span class="ln">13&lt;/span> &lt;span class="p">}&lt;/span>
 &lt;span class="ln">14&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="nx">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Op&lt;/span> =&lt;span class="o">=&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Op&lt;/span> =&lt;span class="o">=&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">16&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">16&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
 &lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
 &lt;span class="ln">18&lt;/span>
-&lt;span class="ln">19&lt;/span> &lt;span class="nx">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Op&lt;/span> =&lt;span class="o">=&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="o">!&lt;/span>&lt;span class="nx">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">20&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">19&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nf">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">20&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
 &lt;span class="ln">21&lt;/span> &lt;span class="p">}&lt;/span>
 &lt;span class="ln">22&lt;/span>
-&lt;span class="ln">23&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln">24&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;span class="ln">23&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln">24&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
 &lt;p>&lt;code>n *Node&lt;/code> is one node of &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree&lt;/a>. We will only focus on the variable size factor for each node in this post. &lt;code>Slice&lt;/code> is also not considered in this post either.&lt;/p>
 &lt;p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code>maxStackVarSize(10MiB)&lt;/code>, or its type's element width is larger than &lt;code>maxImplicitStackVarSize(64kb)&lt;/code>.&lt;/p>
 &lt;p>Now it's time to write some code to verify this. Consider we have a file &lt;code>case1.go&lt;/code> with code like below:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="nx">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
 &lt;span class="ln"> 2&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="nx">type&lt;/span> &lt;span class="nx">employer1&lt;/span> &lt;span class="nx">struct&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="nx">string&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="nx">int&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="nx">string&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">
-&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">//go:noinline
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">func&lt;/span> &lt;span class="nx">getEmployer1Array&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="m">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="nb">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="m">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="m">0&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="m">262144&lt;/span>&lt;span class="err">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">employer1&lt;/span>&lt;span class="p">{&lt;/span>
-&lt;span class="ln">14&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="s2">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">23&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">16&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="s2">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer1&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 8&lt;/span>
+&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployer1Array&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262144&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer1&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">16&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
 &lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
 &lt;span class="ln">18&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">19&lt;/span> &lt;span class="nx">return&lt;/span> &lt;span class="nx">emps&lt;/span>
+&lt;span class="ln">19&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
 &lt;span class="ln">20&lt;/span>&lt;span class="p">}&lt;/span>
 &lt;span class="ln">21&lt;/span>
-&lt;span class="ln">22&lt;/span>&lt;span class="nx">func&lt;/span> &lt;span class="nx">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;span class="ln">22&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
 &lt;p>Type &lt;code>employer1&lt;/code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code>262,144&lt;/code> will make &lt;code>var emps&lt;/code> to be 10MiB large. I.e, &lt;code>n.Type.Width&lt;/code> is 10MiB, and &lt;code>n.Type.Elem().Width&lt;/code> is 40Byte.&lt;/p>
 &lt;p>Then we can run command:&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ go build -gcflags=&amp;#34;-m -l&amp;#34; case1.go&lt;/code>&lt;/pre>&lt;/div>
