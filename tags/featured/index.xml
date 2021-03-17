@@ -105,10 +105,9 @@
 &lt;span class="ln">22&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
 &lt;p>With this change, &lt;code>n.Type.Width&lt;/code> value becomes &lt;code>10MiB + 40Byte&lt;/code>. This time, we get:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln">1&lt;/span>&lt;span class="nx">smiletrl&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">Rulins&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">MacBook&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Pro&lt;/span> &lt;span class="nx">example2&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="k">go&lt;/span> &lt;span class="nx">build&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">gcflags&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;-m -l&amp;#34;&lt;/span>
-&lt;span class="ln">2&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">github&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">com&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">smiletrl&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">golang_escape&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">pkg&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">example2&lt;/span>
-&lt;span class="ln">3&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="nx">case1&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">moved&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">heap&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">emps&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example2 % go build -gcflags=&amp;#34;-m -l&amp;#34;
+&lt;span class="ln">2&lt;/span># github.com/smiletrl/golang_escape/pkg/example2
+&lt;span class="ln">3&lt;/span>./case1.go:11:6: moved to heap: emps&lt;/code>&lt;/pre>&lt;/div>
 &lt;p>Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt;/p>
 &lt;h2 id="conclusion">Conclusion&lt;/h2>
 &lt;p>Now that we know the exact size of a local &lt;code>large&lt;/code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.&lt;/p>
