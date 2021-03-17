@@ -1,8 +1,8 @@
 +++
 author = "Rulin Tang"
-title = "Terraform import aws s3 bucket"
+title = "How large is `large` to allocate a local variable in heap for Golang"
 date = "2021-03-16"
-description = "terraform import aws s3 bucket"
+description = "local large heap allocated variable in golang"
 featured = true
 tags = [
    "heap"
@@ -11,10 +11,10 @@ categories = [
    "Escape analysis",
 ]
 series = ["Golang"]
-aliases = ["golang-local-large-heap-allocated-variable"]
+aliases = ["golang-allocate-large-local-variable-in-heap"]
 thumbnail = "images/building.png"
 +++
- 
+
 This post shows how a local variable will be `large` enough to be allocated to heap.
 <!--more-->
  

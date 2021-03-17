@@ -20,6 +20,9 @@
     <loc>https://smiletrl.github.io/tags/heap/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://smiletrl.github.io/post/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
@@ -36,9 +39,6 @@
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/categories/terraform/</loc>
-    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/post/terraform-import-s3-bucket/</loc>
