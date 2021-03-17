@@ -1,6 +1,6 @@
 +++
 author = "Rulin Tang"
-title = "How large is `large` to allocate a local variable in heap for Golang"
+title = "How large is large enough to allocate a local variable to heap in Golang"
 date = "2021-03-16"
 description = "local large heap allocated variable in golang"
 featured = true
@@ -12,7 +12,7 @@ categories = [
    "Escape analysis",
 ]
 series = ["Golang"]
-aliases = ["golang-allocate-large-local-variable-in-heap"]
+aliases = ["golang-allocate-large-local-variable-to-heap"]
 thumbnail = "images/building.png"
 +++
 
