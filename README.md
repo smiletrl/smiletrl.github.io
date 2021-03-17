@@ -1,1 +1,1 @@
-Rulin's personal tech blog ^
+Rulin's personal tech blog. Check the online version at https://smiletrl.github.io/.

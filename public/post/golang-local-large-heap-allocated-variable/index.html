@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" data-figures="" class="page">
   <head>
-<title>About | Golang Develop</title>
+<title>Terraform import aws s3 bucket | Golang Develop</title>
 <meta charset="utf-8">
 <meta name="generator" content="Hugo 0.81.0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -18,14 +18,14 @@
 <meta property="og:locale" content="en" />
 
 <meta property="og:type" content="article">
-<meta name="description" content="smiletrl, a Golang developer, with interest in PostgresSQL, distributed system, and high performance coding. ">
+<meta name="description" content="terraform import aws s3 bucket">
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:creator" content="">
-<meta name="twitter:title" content="About" />
-<meta property="og:url" content="https://smiletrl.github.io/about/" />
-<meta property="og:title" content="About" />
-<meta property="og:description" content="smiletrl, a Golang developer, with interest in PostgresSQL, distributed system, and high performance coding. " />
-<meta property="og:image" content="https://smiletrl.github.io/images/thumbnail.png" />
+<meta name="twitter:title" content="Terraform import aws s3 bucket" />
+<meta property="og:url" content="https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/" />
+<meta property="og:title" content="Terraform import aws s3 bucket" />
+<meta property="og:description" content="terraform import aws s3 bucket" />
+<meta property="og:image" content="https://smiletrl.github.io/images/building.png" />
 <link rel="apple-touch-icon" sizes="180x180" href='https://smiletrl.github.io/icons/apple-touch-icon.png'>
 <link rel="icon" type="image/png" sizes="32x32" href='https://smiletrl.github.io/icons/favicon-32x32.png'>
 <link rel="manifest" href='https://smiletrl.github.io/icons/site.webmanifest'>
@@ -33,7 +33,7 @@
 <meta name="msapplication-TileColor" content="#002538">
 <meta name="theme-color" content="#002538">
 
-<link rel="canonical" href="https://smiletrl.github.io/about/">
+<link rel="canonical" href="https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/">
 
     
 
@@ -64,7 +64,7 @@
   <div class="nav_parent">
     <a href="https://smiletrl.github.io/" class="nav_item" title="Home">Home </a>
   </div>
-  <div class="nav_parent nav_active">
+  <div class="nav_parent">
     <a href="https://smiletrl.github.io/about/" class="nav_item" title="About">About </a>
   </div>
       
@@ -93,24 +93,26 @@
   
 <div class="grid-inverse wrap content">
   <article class="post_content">
-    <h1 class="post_title">About</h1><div class="post_meta">
+    <h1 class="post_title">Terraform import aws s3 bucket</h1><div class="post_meta">
   
     <svg class="icon">
   <use xlink:href="#calendar"></use>
 </svg>
     <span class="post_date">
-      Mar 14, 2021</span>
+      Mar 16, 2021</span>
+      <a href='https://smiletrl.github.io/tags/heap' title="heap" class="post_tag button button_translucent">heap
+      </a>
 </div>
 
     
   <div class="post_share">
     Share on:
-    <a href="https://twitter.com/intent/tweet?text=About&url=https%3a%2f%2fsmiletrl.github.io%2fabout%2f&tw_p=tweetbutton" class="twitter" title="Share on Twitter" target="_blank" rel="nofollow">
+    <a href="https://twitter.com/intent/tweet?text=Terraform%20import%20aws%20s3%20bucket&url=https%3a%2f%2fsmiletrl.github.io%2fpost%2fgolang-local-large-heap-allocated-variable%2f&tw_p=tweetbutton" class="twitter" title="Share on Twitter" target="_blank" rel="nofollow">
       <svg class="icon">
   <use xlink:href="#twitter"></use>
 </svg>
     </a>
-    <a href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fsmiletrl.github.io%2fabout%2f&t=About" class="facebook" title="Share on Facebook" target="_blank" rel="nofollow">
+    <a href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fsmiletrl.github.io%2fpost%2fgolang-local-large-heap-allocated-variable%2f&t=Terraform%20import%20aws%20s3%20bucket" class="facebook" title="Share on Facebook" target="_blank" rel="nofollow">
       <svg class="icon">
   <use xlink:href="#facebook"></use>
 </svg>
@@ -120,7 +122,7 @@
   <use xlink:href="#linkedin"></use>
 </svg>
     </a>
-    <a href="https://smiletrl.github.io/about/" title="Copy Link" class="link link_yank">
+    <a href="https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/" title="Copy Link" class="link link_yank">
       <svg class="icon">
   <use xlink:href="#copy"></use>
 </svg>
@@ -128,9 +130,119 @@
   </div>
 
     
-    <p>I'm (Rulin Tang, based in China) a golang developer with interest in PostgresSQL, distributed system, and high performance coding.</p>
-<p>Before golang, I was involved with <a href="https://github.com/u/smiletrl">Drupal</a>, a CMS written in PHP.</p>
-
+    <p>This post shows how a local variable will be <code>large</code> enough to be allocated to heap.</p>
+<h2 id="stack-or-heap">Stack or heap</h2>
+<p>Stack is usually more efficient for variable allocation than heap. There're plenty of articles online explaining why stack allocation is much faster, especially for Golang. So I'm not going to talk about the difference between stack and heap in the article.</p>
+<p>According to <a href="https://golang.org/doc/faq#stack_or_heap">Golang FAQ</a>,</p>
+<blockquote>
+<p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.</p>
+</blockquote>
+<p>I guess most go developers (including me ^) will be curious about how <code>large</code> is large that a local variable will be allocated to heap. For Go 1.15, the answer is <code>10MiB</code>. See <a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19">gc/go.go</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nb">var</span> <span class="p">(</span><span class="c1">
+</span><span class="ln"> 2</span><span class="c1"> // maximum size variable which we will allocate on the stack.
+</span><span class="ln"> 3</span><span class="c1"> // This limit is for explicit variable declarations like &#34;var x T&#34; or &#34;x := ...&#34;.
+</span><span class="ln"> 4</span><span class="c1"> // Note: the flag smallframes can update this value.
+</span><span class="ln"> 5</span><span class="c1"></span> <span class="na">maxStackVarSize</span> = <span class="nx">int64</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="m">1024</span> <span class="o">*</span> <span class="m">1024</span><span class="p">)</span><span class="c1">
+</span><span class="ln"> 6</span><span class="c1"> 
+</span><span class="ln"> 7</span><span class="c1"> // maximum size of implicit variables that we will allocate on the stack.
+</span><span class="ln"> 8</span><span class="c1"> //   p := new(T)          allocating T on the stack
+</span><span class="ln"> 9</span><span class="c1"> //   p := &amp;T{}            allocating T on the stack
+</span><span class="ln">10</span><span class="c1"> //   s := make([]T, n)    allocating [n]T on the stack
+</span><span class="ln">11</span><span class="c1"> //   s := []byte(&#34;...&#34;)   allocating [n]byte on the stack
+</span><span class="ln">12</span><span class="c1"> // Note: the flag smallframes can update this value.
+</span><span class="ln">13</span><span class="c1"></span> <span class="na">maxImplicitStackVarSize</span> = <span class="nx">int64</span><span class="p">(</span><span class="m">64</span> <span class="o">*</span> <span class="m">1024</span><span class="p">)</span>
+<span class="ln">14</span><span class="p">)</span></code></pre></div>
+<p>and <a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nx">func</span> <span class="nx">mustHeapAlloc</span><span class="p">(</span><span class="nx">n</span> <span class="o">*</span><span class="nx">Node</span><span class="p">)</span> <span class="nx">bool</span> <span class="p">{</span>
+<span class="ln"> 2</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Type</span> =<span class="o">=</span> <span class="nx">nil</span> <span class="p">{</span>
+<span class="ln"> 3</span>   <span class="nx">return</span> <span class="kc">false</span>
+<span class="ln"> 4</span> <span class="p">}</span><span class="c1">
+</span><span class="ln"> 5</span><span class="c1"> 
+</span><span class="ln"> 6</span><span class="c1"> // Parameters are always passed via the stack.
+</span><span class="ln"> 7</span><span class="c1"></span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">ONAME</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="nx">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAM</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAMOUT</span><span class="p">)</span> <span class="p">{</span>
+<span class="ln"> 8</span>   <span class="nx">return</span> <span class="kc">false</span>
+<span class="ln"> 9</span> <span class="p">}</span>
+<span class="ln">10</span> 
+<span class="ln">11</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">Width</span> <span class="o">&gt;</span> <span class="nx">maxStackVarSize</span> <span class="p">{</span>
+<span class="ln">12</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">13</span> <span class="p">}</span>
+<span class="ln">14</span> 
+<span class="ln">15</span> <span class="nx">if</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">ONEW</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">OPTRLIT</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">Elem</span><span class="p">().</span><span class="nx">Width</span> <span class="o">&gt;=</span> <span class="nx">maxImplicitStackVarSize</span> <span class="p">{</span>
+<span class="ln">16</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">17</span> <span class="p">}</span>
+<span class="ln">18</span> 
+<span class="ln">19</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">OMAKESLICE</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">isSmallMakeSlice</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+<span class="ln">20</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">21</span> <span class="p">}</span>
+<span class="ln">22</span> 
+<span class="ln">23</span> <span class="nx">return</span> <span class="kc">false</span>
+<span class="ln">24</span><span class="p">}</span></code></pre></div>
+<p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> is also not considered in this post either.</p>
+<p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than <code>maxStackVarSize(10MiB)</code>, or its type's element width is larger than <code>maxImplicitStackVarSize(64kb)</code>.</p>
+<p>Now it's time to write some code to verify this. Consider we have a file <code>case1.go</code> with code like below:</p>
+<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nx">package</span> <span class="nx">main</span>
+<span class="ln"> 2</span> 
+<span class="ln"> 3</span><span class="nx">type</span> <span class="nx">employer1</span> <span class="nx">struct</span> <span class="p">{</span>
+<span class="ln"> 4</span> <span class="nx">Name</span>  <span class="nx">string</span>
+<span class="ln"> 5</span> <span class="nx">Age</span>   <span class="nx">int</span>
+<span class="ln"> 6</span> <span class="nx">Title</span> <span class="nx">string</span>
+<span class="ln"> 7</span><span class="p">}</span><span class="c1">
+</span><span class="ln"> 8</span><span class="c1"> 
+</span><span class="ln"> 9</span><span class="c1">//go:noinline
+</span><span class="ln">10</span><span class="c1"></span><span class="nx">func</span> <span class="nx">getEmployer1Array</span><span class="p">()</span> <span class="p">[</span><span class="m">262144</span><span class="p">]</span><span class="nx">employer1</span> <span class="p">{</span>
+<span class="ln">11</span> <span class="nb">var</span> <span class="nx">emps</span> <span class="p">[</span><span class="m">262144</span><span class="p">]</span><span class="nx">employer1</span>
+<span class="ln">12</span> <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="m">0</span><span class="err">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="m">262144</span><span class="err">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+<span class="ln">13</span>   <span class="nx">emps</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">employer1</span><span class="p">{</span>
+<span class="ln">14</span>     <span class="nx">Name</span><span class="o">:</span>  <span class="s2">&#34;adam&#34;</span><span class="p">,</span>
+<span class="ln">15</span>     <span class="nx">Age</span><span class="o">:</span>   <span class="m">23</span><span class="p">,</span>
+<span class="ln">16</span>     <span class="nx">Title</span><span class="o">:</span> <span class="s2">&#34;ceo&#34;</span><span class="p">,</span>
+<span class="ln">17</span>   <span class="p">}</span>
+<span class="ln">18</span> <span class="p">}</span>
+<span class="ln">19</span> <span class="nx">return</span> <span class="nx">emps</span>
+<span class="ln">20</span><span class="p">}</span>
+<span class="ln">21</span> 
+<span class="ln">22</span><span class="nx">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{}</span></code></pre></div>
+<p>Type <code>employer1</code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size <code>262,144</code> will make <code>var emps</code> to be 10MiB large. I.e, <code>n.Type.Width</code> is 10MiB, and <code>n.Type.Elem().Width</code> is 40Byte.</p>
+<p>Then we can run command:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>$ go build -gcflags=&#34;-m -l&#34; case1.go</code></pre></div>
+<p>Result is empty:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>smiletrl@Rulins-MacBook-Pro example4 % go build -gcflags=&#34;-m -l&#34;</code></pre></div>
+<p>It means no variable has been moved to heap yet.</p>
+<p>Now lets increase the array size by 1, and we have:</p>
+<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kn">package</span> <span class="nx">main</span>
+<span class="ln"> 2</span> 
+<span class="ln"> 3</span><span class="kd">type</span> <span class="nx">employer1</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="ln"> 4</span> <span class="nx">Name</span>  <span class="kt">string</span>
+<span class="ln"> 5</span> <span class="nx">Age</span>   <span class="kt">int</span>
+<span class="ln"> 6</span> <span class="nx">Title</span> <span class="kt">string</span>
+<span class="ln"> 7</span><span class="p">}</span>
+<span class="ln"> 8</span> 
+<span class="ln"> 9</span><span class="c1">//go:noinline
+</span><span class="ln">10</span><span class="c1"></span><span class="kd">func</span> <span class="nf">getEmployer1Array</span><span class="p">()</span> <span class="p">[</span><span class="mi">262145</span><span class="p">]</span><span class="nx">employer1</span> <span class="p">{</span>
+<span class="ln">11</span> <span class="kd">var</span> <span class="nx">emps</span> <span class="p">[</span><span class="mi">262145</span><span class="p">]</span><span class="nx">employer1</span>
+<span class="ln">12</span> <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">262145</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+<span class="ln">13</span>   <span class="nx">emps</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nx">employer1</span><span class="p">{</span>
+<span class="ln">14</span>     <span class="nx">Name</span><span class="p">:</span>  <span class="s">&#34;adam&#34;</span><span class="p">,</span>
+<span class="ln">15</span>     <span class="nx">Age</span><span class="p">:</span>   <span class="mi">23</span><span class="p">,</span>
+<span class="ln">16</span>     <span class="nx">Title</span><span class="p">:</span> <span class="s">&#34;ceo&#34;</span><span class="p">,</span>
+<span class="ln">17</span>   <span class="p">}</span>
+<span class="ln">18</span> <span class="p">}</span>
+<span class="ln">19</span> <span class="k">return</span> <span class="nx">emps</span>
+<span class="ln">20</span><span class="p">}</span>
+<span class="ln">21</span> 
+<span class="ln">22</span><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{}</span>
+</code></pre></div>
+<p>With this change, <code>n.Type.Width</code> value becomes <code>10MiB + 40Byte</code>. This time, we get:</p>
+<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln">1</span><span class="nx">smiletrl</span><span class="err">@</span><span class="nx">Rulins</span><span class="o">-</span><span class="nx">MacBook</span><span class="o">-</span><span class="nx">Pro</span> <span class="nx">example2</span> <span class="o">%</span> <span class="k">go</span> <span class="nx">build</span> <span class="o">-</span><span class="nx">gcflags</span><span class="p">=</span><span class="s">&#34;-m -l&#34;</span>
+<span class="ln">2</span><span class="err">#</span> <span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">smiletrl</span><span class="o">/</span><span class="nx">golang_escape</span><span class="o">/</span><span class="nx">pkg</span><span class="o">/</span><span class="nx">example2</span>
+<span class="ln">3</span><span class="p">.</span><span class="o">/</span><span class="nx">case1</span><span class="p">.</span><span class="k">go</span><span class="p">:</span><span class="mi">11</span><span class="p">:</span><span class="mi">6</span><span class="p">:</span> <span class="nx">moved</span> <span class="nx">to</span> <span class="nx">heap</span><span class="p">:</span> <span class="nx">emps</span>
+</code></pre></div>
+<p>Cool! We see the variable <code>var emps</code> has been moved to heap!</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Now that we know the exact size of a local <code>large</code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.</p>
+<p>It's not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.</p>
+<p>For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)</p>
+<p>You may find more explanation and escape examples at <a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape</a>.</p>
 
   </article>
 <aside class="sidebar">
@@ -144,17 +256,11 @@
     <h2 class="mt-4">Featured Posts</h2>
     <ul>
       <li>
-        <a href="https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
-      </li>
-      <li>
         <a href="https://smiletrl.github.io/post/terraform-import-s3-bucket/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
       </li>
     </ul>
     <h2 class="mt-4">Recent Posts</h2>
     <ul class="flex-column">
-      <li>
-        <a href="https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
-      </li>
       <li>
         <a href="https://smiletrl.github.io/post/terraform-import-s3-bucket/" class="nav-link" title="Terraform import aws s3 bucket">Terraform import aws s3 bucket</a>
       </li>

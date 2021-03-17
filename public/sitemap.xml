@@ -8,7 +8,16 @@
     <loc>https://smiletrl.github.io/categories/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://smiletrl.github.io/categories/escape-analysis/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://smiletrl.github.io/tags/featured/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://smiletrl.github.io/series/golang/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://smiletrl.github.io/tags/heap/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/post/</loc>
@@ -27,6 +36,9 @@
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/categories/terraform/</loc>
+    <lastmod>2021-03-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</loc>
     <lastmod>2021-03-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://smiletrl.github.io/post/terraform-import-s3-bucket/</loc>

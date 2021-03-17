@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Golang Develop</title>
-    <link>https://smiletrl.github.io/</link>
-    <description>Recent content on Golang Develop</description>
+    <title>heap on Golang Develop</title>
+    <link>https://smiletrl.github.io/tags/heap/</link>
+    <description>Recent content in heap on Golang Develop</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>Copyright © 2021, all rights reserved.</copyright>
-    <lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/tags/heap/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Terraform import aws s3 bucket</title>
       <link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link>
@@ -128,82 +128,6 @@
 &lt;p&gt;It&#39;s not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.&lt;/p&gt;
 &lt;p&gt;For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)&lt;/p&gt;
 &lt;p&gt;You may find more explanation and escape examples at &lt;a href=&#34;https://github.com/smiletrl/golang_escape&#34;&gt;https://github.com/smiletrl/golang_escape&lt;/a&gt;.&lt;/p&gt;
-        
-      </description>
-    </item>
-    
-    <item>
-      <title>Terraform import aws s3 bucket</title>
-      <link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link>
-      <pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid>
-      <description>
-        
-          &lt;p&gt;This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p&gt;
-&lt;h2 id=&#34;terraform-apply-error&#34;&gt;Terraform Apply Error&lt;/h2&gt;
-&lt;p&gt;It&#39;s common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;code&gt;Error:&lt;/code&gt; Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then &lt;code&gt;terraform apply&lt;/code&gt; will not try to create it again.&lt;/p&gt;
-&lt;p&gt;Before we start run import command, it might be a good idea to run &lt;code&gt;aws s3 ls&lt;/code&gt; to get a list of existing s3 buckets at aws. Result is like:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;% aws s3 ls
-&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;2021-03-15 12:03:25 s3-bucket-name1
-&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;2021-03-15 13:06:25 s3-bucket-name2
-&lt;span class=&#34;ln&#34;&gt;4&lt;/span&gt;2021-03-15 13:06:05 s3-bucket-name3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id=&#34;terraform-import---method-one&#34;&gt;Terraform Import - method one&lt;/h2&gt;
-&lt;p&gt;According to the &lt;a href=&#34;https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket&#34;&gt;S3 official Doc&lt;/a&gt;, S3 bucket can be imported using&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;$ terraform import aws_s3_bucket.mybucket s3-bucket-name&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;This command will work for s3 resource declaration like:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span class=&#34;ln&#34;&gt; 1&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;aws_s3_bucket&amp;#34;&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;mybucket&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 2&lt;/span&gt;  &lt;span class=&#34;na&#34;&gt;bucket&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-name&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 3&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 4&lt;/span&gt;  &lt;span class=&#34;nx&#34;&gt;server_side_encryption_configuration&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 5&lt;/span&gt;    &lt;span class=&#34;nx&#34;&gt;rule&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 6&lt;/span&gt;      &lt;span class=&#34;nx&#34;&gt;apply_server_side_encryption_by_default&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 7&lt;/span&gt;        &lt;span class=&#34;na&#34;&gt;kms_master_key_id&lt;/span&gt; = &lt;span class=&#34;nx&#34;&gt;aws_kms_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;mykey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;arn&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 8&lt;/span&gt;        &lt;span class=&#34;na&#34;&gt;sse_algorithm&lt;/span&gt;     = &lt;span class=&#34;s2&#34;&gt;&amp;#34;aws:kms&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt; 9&lt;/span&gt;      &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;10&lt;/span&gt;    &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;11&lt;/span&gt;  &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;12&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;There&#39;s a &lt;a href=&#34;https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5&#34;&gt;great article&lt;/a&gt; with more details you may check.&lt;/p&gt;
-&lt;h2 id=&#34;terraform-import---method-two&#34;&gt;Terraform Import - method two&lt;/h2&gt;
-&lt;p&gt;Method one works fine for one bucket, but in case there&#39;re different modules reusing the same S3 bucket resource, then there might be problem to make it work.&lt;/p&gt;
-&lt;p&gt;For example, we have infrastructure directory structure&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;|-- modules
-&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;|   |-- s3
-&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;|   |   |--main.tf
-&lt;span class=&#34;ln&#34;&gt;4&lt;/span&gt;|-- prod
-&lt;span class=&#34;ln&#34;&gt;5&lt;/span&gt;|   |-- main.tf
-&lt;span class=&#34;ln&#34;&gt;6&lt;/span&gt;|-- staging
-&lt;span class=&#34;ln&#34;&gt;7&lt;/span&gt;|   |-- main.tf&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;File &lt;code&gt;/modules/s3/main.tf&lt;/code&gt; is having content:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;aws_s3_bucket&amp;#34;&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;mybucket&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;  &lt;span class=&#34;na&#34;&gt;bucket&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;${&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;var&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;name&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;
-&lt;/span&gt;&lt;span class=&#34;ln&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;variable&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;6&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;type&lt;/span&gt; = &lt;span class=&#34;nx&#34;&gt;string&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;7&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;File &lt;code&gt;/prod/main.tf&lt;/code&gt; and &lt;code&gt;/staging/main.tf&lt;/code&gt; may have content:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;module&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-1&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;source&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;../modules/s3&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;name&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-name1&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;
-&lt;/span&gt;&lt;span class=&#34;ln&#34;&gt;6&lt;/span&gt;&lt;span class=&#34;kr&#34;&gt;module&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-2&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;7&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;source&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;../modules/s3&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;8&lt;/span&gt;    &lt;span class=&#34;na&#34;&gt;name&lt;/span&gt; = &lt;span class=&#34;s2&#34;&gt;&amp;#34;s3-bucket-name2&amp;#34;&lt;/span&gt;
-&lt;span class=&#34;ln&#34;&gt;9&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;In this case, we will use &lt;a href=&#34;https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module&#34;&gt;module import&lt;/a&gt; to import the S3 bucket.&lt;/p&gt;
-&lt;p&gt;We may &lt;code&gt;cd&lt;/code&gt; into directory &lt;code&gt;/prod&lt;/code&gt;, and run command like below:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
-&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Now, when we run &lt;code&gt;terraform plan&lt;/code&gt; again, it will not try to create the two buckets any more.&lt;/p&gt;
-&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;It&#39;s common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p&gt;
         
       </description>
     </item>
