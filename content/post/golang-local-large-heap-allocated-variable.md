@@ -29,7 +29,7 @@ According to [Golang FAQ](https://golang.org/doc/faq#stack_or_heap),
  
 I guess most go developers (including me ^) will be curious about how `large` is large that a local variable will be allocated to heap. For Go 1.15, the answer is `10MiB`. See [gc/go.go](https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19)
  
-{{< highlight terraform >}}
+{{< highlight golang >}}
 var (
  // maximum size variable which we will allocate on the stack.
  // This limit is for explicit variable declarations like "var x T" or "x := ...".
@@ -48,7 +48,7 @@ var (
  
 and [gc/esc.go](https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172)
  
-{{< highlight terraform >}}
+{{< highlight golang >}}
 func mustHeapAlloc(n *Node) bool {
  if n.Type == nil {
    return false
@@ -81,7 +81,7 @@ Combining the two code blocks, a variable will be moved to heap when its type wi
  
 Now it's time to write some code to verify this. Consider we have a file `case1.go` with code like below:
  
-{{< highlight terraform >}}
+{{< highlight golang >}}
 package main
  
 type employer1 struct {

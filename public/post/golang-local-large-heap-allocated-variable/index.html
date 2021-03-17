@@ -140,70 +140,73 @@
 <p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.</p>
 </blockquote>
 <p>I guess most go developers (including me ^) will be curious about how <code>large</code> is large that a local variable will be allocated to heap. For Go 1.15, the answer is <code>10MiB</code>. See <a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19">gc/go.go</a></p>
-<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nb">var</span> <span class="p">(</span><span class="c1">
-</span><span class="ln"> 2</span><span class="c1"> // maximum size variable which we will allocate on the stack.
-</span><span class="ln"> 3</span><span class="c1"> // This limit is for explicit variable declarations like &#34;var x T&#34; or &#34;x := ...&#34;.
-</span><span class="ln"> 4</span><span class="c1"> // Note: the flag smallframes can update this value.
-</span><span class="ln"> 5</span><span class="c1"></span> <span class="na">maxStackVarSize</span> = <span class="nx">int64</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="m">1024</span> <span class="o">*</span> <span class="m">1024</span><span class="p">)</span><span class="c1">
-</span><span class="ln"> 6</span><span class="c1"> 
-</span><span class="ln"> 7</span><span class="c1"> // maximum size of implicit variables that we will allocate on the stack.
-</span><span class="ln"> 8</span><span class="c1"> //   p := new(T)          allocating T on the stack
-</span><span class="ln"> 9</span><span class="c1"> //   p := &amp;T{}            allocating T on the stack
-</span><span class="ln">10</span><span class="c1"> //   s := make([]T, n)    allocating [n]T on the stack
-</span><span class="ln">11</span><span class="c1"> //   s := []byte(&#34;...&#34;)   allocating [n]byte on the stack
-</span><span class="ln">12</span><span class="c1"> // Note: the flag smallframes can update this value.
-</span><span class="ln">13</span><span class="c1"></span> <span class="na">maxImplicitStackVarSize</span> = <span class="nx">int64</span><span class="p">(</span><span class="m">64</span> <span class="o">*</span> <span class="m">1024</span><span class="p">)</span>
-<span class="ln">14</span><span class="p">)</span></code></pre></div>
+<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kd">var</span> <span class="p">(</span>
+<span class="ln"> 2</span> <span class="c1">// maximum size variable which we will allocate on the stack.
+</span><span class="ln"> 3</span><span class="c1"></span> <span class="c1">// This limit is for explicit variable declarations like &#34;var x T&#34; or &#34;x := ...&#34;.
+</span><span class="ln"> 4</span><span class="c1"></span> <span class="c1">// Note: the flag smallframes can update this value.
+</span><span class="ln"> 5</span><span class="c1"></span> <span class="nx">maxStackVarSize</span> <span class="p">=</span> <span class="nb">int64</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+<span class="ln"> 6</span> 
+<span class="ln"> 7</span> <span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+</span><span class="ln"> 8</span><span class="c1"></span> <span class="c1">//   p := new(T)          allocating T on the stack
+</span><span class="ln"> 9</span><span class="c1"></span> <span class="c1">//   p := &amp;T{}            allocating T on the stack
+</span><span class="ln">10</span><span class="c1"></span> <span class="c1">//   s := make([]T, n)    allocating [n]T on the stack
+</span><span class="ln">11</span><span class="c1"></span> <span class="c1">//   s := []byte(&#34;...&#34;)   allocating [n]byte on the stack
+</span><span class="ln">12</span><span class="c1"></span> <span class="c1">// Note: the flag smallframes can update this value.
+</span><span class="ln">13</span><span class="c1"></span> <span class="nx">maxImplicitStackVarSize</span> <span class="p">=</span> <span class="nb">int64</span><span class="p">(</span><span class="mi">64</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+<span class="ln">14</span><span class="p">)</span>
+</code></pre></div>
 <p>and <a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go</a></p>
-<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nx">func</span> <span class="nx">mustHeapAlloc</span><span class="p">(</span><span class="nx">n</span> <span class="o">*</span><span class="nx">Node</span><span class="p">)</span> <span class="nx">bool</span> <span class="p">{</span>
-<span class="ln"> 2</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Type</span> =<span class="o">=</span> <span class="nx">nil</span> <span class="p">{</span>
-<span class="ln"> 3</span>   <span class="nx">return</span> <span class="kc">false</span>
-<span class="ln"> 4</span> <span class="p">}</span><span class="c1">
-</span><span class="ln"> 5</span><span class="c1"> 
-</span><span class="ln"> 6</span><span class="c1"> // Parameters are always passed via the stack.
-</span><span class="ln"> 7</span><span class="c1"></span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">ONAME</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="nx">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAM</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAMOUT</span><span class="p">)</span> <span class="p">{</span>
-<span class="ln"> 8</span>   <span class="nx">return</span> <span class="kc">false</span>
+<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kd">func</span> <span class="nf">mustHeapAlloc</span><span class="p">(</span><span class="nx">n</span> <span class="o">*</span><span class="nx">Node</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+<span class="ln"> 2</span> <span class="k">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+<span class="ln"> 3</span>   <span class="k">return</span> <span class="kc">false</span>
+<span class="ln"> 4</span> <span class="p">}</span>
+<span class="ln"> 5</span> 
+<span class="ln"> 6</span> <span class="c1">// Parameters are always passed via the stack.
+</span><span class="ln"> 7</span><span class="c1"></span> <span class="k">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Op</span> <span class="o">==</span> <span class="nx">ONAME</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="nf">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAM</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="nf">Class</span><span class="p">()</span> <span class="o">==</span> <span class="nx">PPARAMOUT</span><span class="p">)</span> <span class="p">{</span>
+<span class="ln"> 8</span>   <span class="k">return</span> <span class="kc">false</span>
 <span class="ln"> 9</span> <span class="p">}</span>
 <span class="ln">10</span> 
-<span class="ln">11</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">Width</span> <span class="o">&gt;</span> <span class="nx">maxStackVarSize</span> <span class="p">{</span>
-<span class="ln">12</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">11</span> <span class="k">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">Width</span> <span class="p">&gt;</span> <span class="nx">maxStackVarSize</span> <span class="p">{</span>
+<span class="ln">12</span>   <span class="k">return</span> <span class="kc">true</span>
 <span class="ln">13</span> <span class="p">}</span>
 <span class="ln">14</span> 
-<span class="ln">15</span> <span class="nx">if</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">ONEW</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">OPTRLIT</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nx">Elem</span><span class="p">().</span><span class="nx">Width</span> <span class="o">&gt;=</span> <span class="nx">maxImplicitStackVarSize</span> <span class="p">{</span>
-<span class="ln">16</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">15</span> <span class="k">if</span> <span class="p">(</span><span class="nx">n</span><span class="p">.</span><span class="nx">Op</span> <span class="o">==</span> <span class="nx">ONEW</span> <span class="o">||</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Op</span> <span class="o">==</span> <span class="nx">OPTRLIT</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Type</span><span class="p">.</span><span class="nf">Elem</span><span class="p">().</span><span class="nx">Width</span> <span class="o">&gt;=</span> <span class="nx">maxImplicitStackVarSize</span> <span class="p">{</span>
+<span class="ln">16</span>   <span class="k">return</span> <span class="kc">true</span>
 <span class="ln">17</span> <span class="p">}</span>
 <span class="ln">18</span> 
-<span class="ln">19</span> <span class="nx">if</span> <span class="nx">n</span><span class="p">.</span><span class="na">Op</span> =<span class="o">=</span> <span class="nx">OMAKESLICE</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">isSmallMakeSlice</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
-<span class="ln">20</span>   <span class="nx">return</span> <span class="kc">true</span>
+<span class="ln">19</span> <span class="k">if</span> <span class="nx">n</span><span class="p">.</span><span class="nx">Op</span> <span class="o">==</span> <span class="nx">OMAKESLICE</span> <span class="o">&amp;&amp;</span> <span class="p">!</span><span class="nf">isSmallMakeSlice</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+<span class="ln">20</span>   <span class="k">return</span> <span class="kc">true</span>
 <span class="ln">21</span> <span class="p">}</span>
 <span class="ln">22</span> 
-<span class="ln">23</span> <span class="nx">return</span> <span class="kc">false</span>
-<span class="ln">24</span><span class="p">}</span></code></pre></div>
+<span class="ln">23</span> <span class="k">return</span> <span class="kc">false</span>
+<span class="ln">24</span><span class="p">}</span>
+</code></pre></div>
 <p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> is also not considered in this post either.</p>
 <p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than <code>maxStackVarSize(10MiB)</code>, or its type's element width is larger than <code>maxImplicitStackVarSize(64kb)</code>.</p>
 <p>Now it's time to write some code to verify this. Consider we have a file <code>case1.go</code> with code like below:</p>
-<div class="highlight"><pre class="chroma"><code class="language-terraform" data-lang="terraform"><span class="ln"> 1</span><span class="nx">package</span> <span class="nx">main</span>
+<div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kn">package</span> <span class="nx">main</span>
 <span class="ln"> 2</span> 
-<span class="ln"> 3</span><span class="nx">type</span> <span class="nx">employer1</span> <span class="nx">struct</span> <span class="p">{</span>
-<span class="ln"> 4</span> <span class="nx">Name</span>  <span class="nx">string</span>
-<span class="ln"> 5</span> <span class="nx">Age</span>   <span class="nx">int</span>
-<span class="ln"> 6</span> <span class="nx">Title</span> <span class="nx">string</span>
-<span class="ln"> 7</span><span class="p">}</span><span class="c1">
-</span><span class="ln"> 8</span><span class="c1"> 
-</span><span class="ln"> 9</span><span class="c1">//go:noinline
-</span><span class="ln">10</span><span class="c1"></span><span class="nx">func</span> <span class="nx">getEmployer1Array</span><span class="p">()</span> <span class="p">[</span><span class="m">262144</span><span class="p">]</span><span class="nx">employer1</span> <span class="p">{</span>
-<span class="ln">11</span> <span class="nb">var</span> <span class="nx">emps</span> <span class="p">[</span><span class="m">262144</span><span class="p">]</span><span class="nx">employer1</span>
-<span class="ln">12</span> <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="m">0</span><span class="err">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="m">262144</span><span class="err">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
-<span class="ln">13</span>   <span class="nx">emps</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">employer1</span><span class="p">{</span>
-<span class="ln">14</span>     <span class="nx">Name</span><span class="o">:</span>  <span class="s2">&#34;adam&#34;</span><span class="p">,</span>
-<span class="ln">15</span>     <span class="nx">Age</span><span class="o">:</span>   <span class="m">23</span><span class="p">,</span>
-<span class="ln">16</span>     <span class="nx">Title</span><span class="o">:</span> <span class="s2">&#34;ceo&#34;</span><span class="p">,</span>
+<span class="ln"> 3</span><span class="kd">type</span> <span class="nx">employer1</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="ln"> 4</span> <span class="nx">Name</span>  <span class="kt">string</span>
+<span class="ln"> 5</span> <span class="nx">Age</span>   <span class="kt">int</span>
+<span class="ln"> 6</span> <span class="nx">Title</span> <span class="kt">string</span>
+<span class="ln"> 7</span><span class="p">}</span>
+<span class="ln"> 8</span> 
+<span class="ln"> 9</span><span class="c1">//go:noinline
+</span><span class="ln">10</span><span class="c1"></span><span class="kd">func</span> <span class="nf">getEmployer1Array</span><span class="p">()</span> <span class="p">[</span><span class="mi">262144</span><span class="p">]</span><span class="nx">employer1</span> <span class="p">{</span>
+<span class="ln">11</span> <span class="kd">var</span> <span class="nx">emps</span> <span class="p">[</span><span class="mi">262144</span><span class="p">]</span><span class="nx">employer1</span>
+<span class="ln">12</span> <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">262144</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+<span class="ln">13</span>   <span class="nx">emps</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nx">employer1</span><span class="p">{</span>
+<span class="ln">14</span>     <span class="nx">Name</span><span class="p">:</span>  <span class="s">&#34;adam&#34;</span><span class="p">,</span>
+<span class="ln">15</span>     <span class="nx">Age</span><span class="p">:</span>   <span class="mi">23</span><span class="p">,</span>
+<span class="ln">16</span>     <span class="nx">Title</span><span class="p">:</span> <span class="s">&#34;ceo&#34;</span><span class="p">,</span>
 <span class="ln">17</span>   <span class="p">}</span>
 <span class="ln">18</span> <span class="p">}</span>
-<span class="ln">19</span> <span class="nx">return</span> <span class="nx">emps</span>
+<span class="ln">19</span> <span class="k">return</span> <span class="nx">emps</span>
 <span class="ln">20</span><span class="p">}</span>
 <span class="ln">21</span> 
-<span class="ln">22</span><span class="nx">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{}</span></code></pre></div>
+<span class="ln">22</span><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{}</span>
+</code></pre></div>
 <p>Type <code>employer1</code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size <code>262,144</code> will make <code>var emps</code> to be 10MiB large. I.e, <code>n.Type.Width</code> is 10MiB, and <code>n.Type.Elem().Width</code> is 40Byte.</p>
 <p>Then we can run command:</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>$ go build -gcflags=&#34;-m -l&#34; case1.go</code></pre></div>
