@@ -5,7 +5,8 @@ date = "2021-03-16"
 description = "local large heap allocated variable in golang"
 featured = true
 tags = [
-   "heap"
+    "heap",
+    "featured"
 ]
 categories = [
    "Escape analysis",
