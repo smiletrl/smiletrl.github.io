@@ -22,7 +22,7 @@
 &lt;blockquote&gt;
 &lt;p&gt;Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;I guess most go developers (including me ^) will be curious about how &lt;code&gt;large&lt;/code&gt; is large that a local variable will be allocated to heap. For Go 1.15, the answer is &lt;code&gt;10MiB&lt;/code&gt;. See &lt;a href=&#34;https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19&#34;&gt;gc/go.go&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I guess most go developers (including me ^) will be curious about how &lt;code&gt;large&lt;/code&gt; is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is &lt;code&gt;10MiB&lt;/code&gt;. See &lt;a href=&#34;https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19&#34;&gt;gc/go.go&lt;/a&gt;. This was &lt;a href=&#34;https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56&#34;&gt;originally defined&lt;/a&gt; by the new Go Parser in Go 1.5.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span class=&#34;ln&#34;&gt; 1&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
 &lt;span class=&#34;ln&#34;&gt; 2&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// maximum size variable which we will allocate on the stack.
 &lt;/span&gt;&lt;span class=&#34;ln&#34;&gt; 3&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
@@ -64,8 +64,8 @@
 &lt;span class=&#34;ln&#34;&gt;23&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;false&lt;/span&gt;
 &lt;span class=&#34;ln&#34;&gt;24&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;n *Node&lt;/code&gt; is one node of &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;Syntax tree&lt;/a&gt;. We will only focus on the variable size factor for each node in this post. &lt;code&gt;Slice&lt;/code&gt; is also not considered in this post either.&lt;/p&gt;
-&lt;p&gt;Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code&gt;maxStackVarSize(10MiB)&lt;/code&gt;, or its type&#39;s element width is larger than &lt;code&gt;maxImplicitStackVarSize(64kb)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;n *Node&lt;/code&gt; is one node of &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;Syntax tree&lt;/a&gt;. We will only focus on the variable size factor for each node in this post. &lt;code&gt;Slice&lt;/code&gt; is not considered in this post either.&lt;/p&gt;
+&lt;p&gt;Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code&gt;maxStackVarSize(10MiB)&lt;/code&gt;, or its type&#39;s element width is larger than (or equal) &lt;code&gt;maxImplicitStackVarSize(64kb)&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Now it&#39;s time to write some code to verify this. Consider we have a file &lt;code&gt;case1.go&lt;/code&gt; with code like below:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span class=&#34;ln&#34;&gt; 1&lt;/span&gt;&lt;span class=&#34;kn&#34;&gt;package&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;main&lt;/span&gt;
 &lt;span class=&#34;ln&#34;&gt; 2&lt;/span&gt; 
@@ -90,7 +90,7 @@
 &lt;span class=&#34;ln&#34;&gt;21&lt;/span&gt; 
 &lt;span class=&#34;ln&#34;&gt;22&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Type &lt;code&gt;employer1&lt;/code&gt; width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code&gt;262,144&lt;/code&gt; will make &lt;code&gt;var emps&lt;/code&gt; to be 10MiB large. I.e, &lt;code&gt;n.Type.Width&lt;/code&gt; is 10MiB, and &lt;code&gt;n.Type.Elem().Width&lt;/code&gt; is 40Byte.&lt;/p&gt;
+&lt;p&gt;For &lt;code&gt;var emps [262144]employer1&lt;/code&gt;, its type is &lt;code&gt;emps&lt;/code&gt;, and type element is struct &lt;code&gt;employer1&lt;/code&gt;.  Type &lt;code&gt;employer1&lt;/code&gt; width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code&gt;262,144&lt;/code&gt; will make &lt;code&gt;var emps&lt;/code&gt; to be 10MiB large. I.e, &lt;code&gt;n.Type.Width&lt;/code&gt; is 10MiB, and &lt;code&gt;n.Type.Elem().Width&lt;/code&gt; is 40Byte in this case.&lt;/p&gt;
 &lt;p&gt;Then we can run command:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;$ go build -gcflags=&amp;#34;-m -l&amp;#34; case1.go&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Result is empty:&lt;/p&gt;
@@ -126,8 +126,8 @@
 &lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;./case1.go:11:6: moved to heap: emps&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Cool! We see the variable &lt;code&gt;var emps&lt;/code&gt; has been moved to heap!&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Now that we know the exact size of a local &lt;code&gt;large&lt;/code&gt; heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.&lt;/p&gt;
-&lt;p&gt;It&#39;s not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.&lt;/p&gt;
+&lt;p&gt;Now that we know the exact size of a local &lt;code&gt;large&lt;/code&gt; heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a &lt;code&gt;reasonable size&lt;/code&gt; to stay within the stack.&lt;/p&gt;
+&lt;p&gt;It&#39;s not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.&lt;/p&gt;
 &lt;p&gt;For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)&lt;/p&gt;
 &lt;p&gt;You may find more explanation and escape examples at &lt;a href=&#34;https://github.com/smiletrl/golang_escape&#34;&gt;https://github.com/smiletrl/golang_escape&lt;/a&gt;.&lt;/p&gt;
         

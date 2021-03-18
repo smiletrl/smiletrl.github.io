@@ -139,7 +139,7 @@
 <blockquote>
 <p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.</p>
 </blockquote>
-<p>I guess most go developers (including me ^) will be curious about how <code>large</code> is large that a local variable will be allocated to heap. For Go 1.15, the answer is <code>10MiB</code>. See <a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19">gc/go.go</a></p>
+<p>I guess most go developers (including me ^) will be curious about how <code>large</code> is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is <code>10MiB</code>. See <a href="https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19">gc/go.go</a>. This was <a href="https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56">originally defined</a> by the new Go Parser in Go 1.5.</p>
 <div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kd">var</span> <span class="p">(</span>
 <span class="ln"> 2</span> <span class="c1">// maximum size variable which we will allocate on the stack.
 </span><span class="ln"> 3</span><span class="c1"></span> <span class="c1">// This limit is for explicit variable declarations like &#34;var x T&#34; or &#34;x := ...&#34;.
@@ -181,8 +181,8 @@
 <span class="ln">23</span> <span class="k">return</span> <span class="kc">false</span>
 <span class="ln">24</span><span class="p">}</span>
 </code></pre></div>
-<p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> is also not considered in this post either.</p>
-<p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than <code>maxStackVarSize(10MiB)</code>, or its type's element width is larger than <code>maxImplicitStackVarSize(64kb)</code>.</p>
+<p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> is not considered in this post either.</p>
+<p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than <code>maxStackVarSize(10MiB)</code>, or its type's element width is larger than (or equal) <code>maxImplicitStackVarSize(64kb)</code>.</p>
 <p>Now it's time to write some code to verify this. Consider we have a file <code>case1.go</code> with code like below:</p>
 <div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kn">package</span> <span class="nx">main</span>
 <span class="ln"> 2</span> 
@@ -207,7 +207,7 @@
 <span class="ln">21</span> 
 <span class="ln">22</span><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{}</span>
 </code></pre></div>
-<p>Type <code>employer1</code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size <code>262,144</code> will make <code>var emps</code> to be 10MiB large. I.e, <code>n.Type.Width</code> is 10MiB, and <code>n.Type.Elem().Width</code> is 40Byte.</p>
+<p>For <code>var emps [262144]employer1</code>, its type is <code>emps</code>, and type element is struct <code>employer1</code>.  Type <code>employer1</code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size <code>262,144</code> will make <code>var emps</code> to be 10MiB large. I.e, <code>n.Type.Width</code> is 10MiB, and <code>n.Type.Elem().Width</code> is 40Byte in this case.</p>
 <p>Then we can run command:</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"><span class="ln">1</span>$ go build -gcflags=&#34;-m -l&#34; case1.go</code></pre></div>
 <p>Result is empty:</p>
@@ -243,8 +243,8 @@
 <span class="ln">3</span>./case1.go:11:6: moved to heap: emps</code></pre></div>
 <p>Cool! We see the variable <code>var emps</code> has been moved to heap!</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>Now that we know the exact size of a local <code>large</code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.</p>
-<p>It's not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.</p>
+<p>Now that we know the exact size of a local <code>large</code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a <code>reasonable size</code> to stay within the stack.</p>
+<p>It's not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.</p>
 <p>For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)</p>
 <p>You may find more explanation and escape examples at <a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape</a>.</p>
 

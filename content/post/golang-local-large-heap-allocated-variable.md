@@ -27,7 +27,7 @@ According to [Golang FAQ](https://golang.org/doc/faq#stack_or_heap),
  
 >  Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.
  
-I guess most go developers (including me ^) will be curious about how `large` is large that a local variable will be allocated to heap. For Go 1.15, the answer is `10MiB`. See [gc/go.go](https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/go.go#L19)
+I guess most go developers (including me ^) will be curious about how `large` is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is `10MiB`. See [gc/go.go](https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19). This was [originally defined](https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56) by the new Go Parser in Go 1.5.
  
 {{< highlight golang >}}
 var (
@@ -75,10 +75,10 @@ func mustHeapAlloc(n *Node) bool {
 }
 {{< /highlight >}}
  
-`n *Node` is one node of [Syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). We will only focus on the variable size factor for each node in this post. `Slice` is also not considered in this post either.
+`n *Node` is one node of [Syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). We will only focus on the variable size factor for each node in this post. `Slice` is not considered in this post either.
  
-Combining the two code blocks, a variable will be moved to heap when its type width is larger than `maxStackVarSize(10MiB)`, or its type's element width is larger than `maxImplicitStackVarSize(64kb)`.
- 
+Combining the two code blocks, a variable will be moved to heap when its type width is larger than `maxStackVarSize(10MiB)`, or its type's element width is larger than (or equal) `maxImplicitStackVarSize(64kb)`.
+
 Now it's time to write some code to verify this. Consider we have a file `case1.go` with code like below:
  
 {{< highlight golang >}}
@@ -105,8 +105,8 @@ func getEmployer1Array() [262144]employer1 {
  
 func main() {}
 {{< /highlight >}}
- 
-Type `employer1` width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size `262,144` will make `var emps` to be 10MiB large. I.e, `n.Type.Width` is 10MiB, and `n.Type.Elem().Width` is 40Byte.
+
+For `var emps [262144]employer1`, its type is `emps`, and type element is struct `employer1`.  Type `employer1` width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size `262,144` will make `var emps` to be 10MiB large. I.e, `n.Type.Width` is 10MiB, and `n.Type.Elem().Width` is 40Byte in this case.
  
 Then we can run command:
  
@@ -161,11 +161,10 @@ Cool! We see the variable `var emps` has been moved to heap!
  
 ## Conclusion
  
-Now that we know the exact size of a local `large` heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a reasonable size to stay within the stack.
+Now that we know the exact size of a local `large` heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a `reasonable size` to stay within the stack.
  
-It's not saying we can allocate as many 10MiB local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.
+It's not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.
  
 For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)
  
 You may find more explanation and escape examples at https://github.com/smiletrl/golang_escape.
- 
