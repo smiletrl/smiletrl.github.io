@@ -64,7 +64,7 @@
 &lt;span class=&#34;ln&#34;&gt;23&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;false&lt;/span&gt;
 &lt;span class=&#34;ln&#34;&gt;24&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;n *Node&lt;/code&gt; is one node of &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;Syntax tree&lt;/a&gt;. We will only focus on the variable size factor for each node in this post. &lt;code&gt;Slice&lt;/code&gt; is not considered in this post either.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;n *Node&lt;/code&gt; is one node of &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;Syntax tree&lt;/a&gt;. We will only focus on the variable size factor for each node in this post. &lt;code&gt;Slice&lt;/code&gt; will have more factors, including this size factor.&lt;/p&gt;
 &lt;p&gt;Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code&gt;maxStackVarSize(10MiB)&lt;/code&gt;, or its type&#39;s element width is larger than (or equal) &lt;code&gt;maxImplicitStackVarSize(64kb)&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Now it&#39;s time to write some code to verify this. Consider we have a file &lt;code&gt;case1.go&lt;/code&gt; with code like below:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-golang&#34; data-lang=&#34;golang&#34;&gt;&lt;span class=&#34;ln&#34;&gt; 1&lt;/span&gt;&lt;span class=&#34;kn&#34;&gt;package&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;main&lt;/span&gt;

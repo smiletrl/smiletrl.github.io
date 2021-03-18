@@ -181,7 +181,7 @@
 <span class="ln">23</span> <span class="k">return</span> <span class="kc">false</span>
 <span class="ln">24</span><span class="p">}</span>
 </code></pre></div>
-<p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> is not considered in this post either.</p>
+<p><code>n *Node</code> is one node of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree</a>. We will only focus on the variable size factor for each node in this post. <code>Slice</code> will have more factors, including this size factor.</p>
 <p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than <code>maxStackVarSize(10MiB)</code>, or its type's element width is larger than (or equal) <code>maxImplicitStackVarSize(64kb)</code>.</p>
 <p>Now it's time to write some code to verify this. Consider we have a file <code>case1.go</code> with code like below:</p>
 <div class="highlight"><pre class="chroma"><code class="language-golang" data-lang="golang"><span class="ln"> 1</span><span class="kn">package</span> <span class="nx">main</span>

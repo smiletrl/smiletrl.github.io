@@ -75,7 +75,7 @@ func mustHeapAlloc(n *Node) bool {
 }
 {{< /highlight >}}
  
-`n *Node` is one node of [Syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). We will only focus on the variable size factor for each node in this post. `Slice` is not considered in this post either.
+`n *Node` is one node of [Syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). We will only focus on the variable size factor for each node in this post. `Slice` will have more factors, including this size factor.
  
 Combining the two code blocks, a variable will be moved to heap when its type width is larger than `maxStackVarSize(10MiB)`, or its type's element width is larger than (or equal) `maxImplicitStackVarSize(64kb)`.
 
