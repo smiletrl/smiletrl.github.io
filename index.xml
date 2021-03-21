@@ -1,119 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang Develop</title><link>https://smiletrl.github.io/</link><description>Recent content on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>How large is large enough to allocate a local variable to heap in Golang</title><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
-&lt;p>This post shows how a local variable will be &lt;code>large&lt;/code> enough to be allocated to heap.&lt;/p>
-&lt;h2 id="stack-or-heap">Stack or heap&lt;/h2>
-&lt;p>Stack is usually more efficient for variable allocation than heap. There're plenty of articles online explaining why stack allocation is much faster, especially for Golang. So I'm not going to talk about the difference between stack and heap in the article.&lt;/p>
-&lt;p>According to &lt;a href="https://golang.org/doc/faq#stack_or_heap">Golang FAQ&lt;/a>,&lt;/p>
-&lt;blockquote>
-&lt;p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.&lt;/p>
-&lt;/blockquote>
-&lt;p>I guess most go developers (including me ^) will be curious about how &lt;code>large&lt;/code> is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is &lt;code>10MiB&lt;/code>. See &lt;a href="https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19">gc/go.go&lt;/a>. This was &lt;a href="https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56">originally defined&lt;/a> by the new Go Parser in Go 1.5.&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
-&lt;span class="ln"> 2&lt;/span> &lt;span class="c1">// maximum size variable which we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
-&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;span class="ln"> 6&lt;/span>
-&lt;span class="ln"> 7&lt;/span> &lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := new(T) allocating T on the stack
-&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
-&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
-&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln">13&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;span class="ln">14&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>and &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go&lt;/a>&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 2&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 3&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 5&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="c1">// Parameters are always passed via the stack.
-&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">10&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">14&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">16&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">18&lt;/span>
-&lt;span class="ln">19&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nf">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">20&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">21&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">22&lt;/span>
-&lt;span class="ln">23&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln">24&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>&lt;code>n *Node&lt;/code> is one node of &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree&lt;/a>. We will only focus on the variable size factor for each node in this post. &lt;code>Slice&lt;/code> will have more factors, including this size factor.&lt;/p>
-&lt;p>Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code>maxStackVarSize(10MiB)&lt;/code>, or its type's element width is larger than (or equal) &lt;code>maxImplicitStackVarSize(64kb)&lt;/code>.&lt;/p>
-&lt;p>Now it's time to write some code to verify this. Consider we have a file &lt;code>case1.go&lt;/code> with code like below:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
-&lt;span class="ln"> 2&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer1&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 8&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">//go:noinline
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployer1Array&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262144&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer1&lt;/span>&lt;span class="p">{&lt;/span>
-&lt;span class="ln">14&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">16&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">18&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">19&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
-&lt;span class="ln">20&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">21&lt;/span>
-&lt;span class="ln">22&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>For &lt;code>var emps [262144]employer1&lt;/code>, its type is &lt;code>emps&lt;/code>, and type element is struct &lt;code>employer1&lt;/code>. Type &lt;code>employer1&lt;/code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code>262,144&lt;/code> will make &lt;code>var emps&lt;/code> to be 10MiB large. I.e, &lt;code>n.Type.Width&lt;/code> is 10MiB, and &lt;code>n.Type.Elem().Width&lt;/code> is 40Byte in this case.&lt;/p>
-&lt;p>Then we can run command:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ go build -gcflags=&amp;#34;-m -l&amp;#34; case1.go&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>Result is empty:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example4 % go build -gcflags=&amp;#34;-m -l&amp;#34;&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>It means no variable has been moved to heap yet.&lt;/p>
-&lt;p>Now lets increase the array size by 1, and we have:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
-&lt;span class="ln"> 2&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer1&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 8&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">//go:noinline
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployer1Array&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer1&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262145&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer1&lt;/span>&lt;span class="p">{&lt;/span>
-&lt;span class="ln">14&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">16&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">18&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">19&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
-&lt;span class="ln">20&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">21&lt;/span>
-&lt;span class="ln">22&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
-&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>With this change, &lt;code>n.Type.Width&lt;/code> value becomes &lt;code>10MiB + 40Byte&lt;/code>. This time, we get:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example2 % go build -gcflags=&amp;#34;-m -l&amp;#34;
-&lt;span class="ln">2&lt;/span># github.com/smiletrl/golang_escape/pkg/example2
-&lt;span class="ln">3&lt;/span>./case1.go:11:6: moved to heap: emps&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt;/p>
-&lt;h2 id="conclusion">Conclusion&lt;/h2>
-&lt;p>Now that we know the exact size of a local &lt;code>large&lt;/code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a &lt;code>reasonable size&lt;/code> to stay within the stack.&lt;/p>
-&lt;p>It's not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about it in a separate post.&lt;/p>
-&lt;p>For previous Go versions, we may use a similar way to find the exact size, and for later versions, change has happened. We will have a separate post :)&lt;/p>
-&lt;p>You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang Develop</title><link>https://smiletrl.github.io/</link><description>Recent content on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
 &lt;p>This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p>
 &lt;h2 id="terraform-apply-error">Terraform Apply Error&lt;/h2>
 &lt;p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p>
@@ -177,4 +62,227 @@
 &lt;span class="ln">2&lt;/span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code>&lt;/pre>&lt;/div>
 &lt;p>Now, when we run &lt;code>terraform plan&lt;/code> again, it will not try to create the two buckets any more.&lt;/p>
 &lt;h2 id="conclusion">Conclusion&lt;/h2>
-&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item></channel></rss>
+&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item><item><title/><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
+&lt;p>title = &amp;quot;How large is large enough to allocate a local variable in heap for Golang&amp;quot;&lt;/p>
+&lt;p>+++
+author = &amp;quot;Rulin Tang&amp;quot;
+title = &amp;quot;How large is large enough to allocate a local variable to heap in Golang&amp;quot;
+date = &amp;quot;2021-03-16&amp;quot;
+description = &amp;quot;local large heap allocated variable in golang&amp;quot;
+featured = true
+tags = [
+&amp;quot;heap&amp;quot;,
+&amp;quot;featured&amp;quot;
+]
+categories = [
+&amp;quot;Escape analysis&amp;quot;,
+]
+series = [&amp;quot;Golang&amp;quot;]
+aliases = [&amp;quot;golang-allocate-large-local-variable-to-heap&amp;quot;]
+thumbnail = &amp;quot;images/building.png&amp;quot;
++++&lt;/p>
+&lt;p>This post shows how a local variable will be &lt;code>large&lt;/code> enough to be allocated to heap.&lt;/p>
+&lt;h2 id="stack-or-heap">Stack or heap&lt;/h2>
+&lt;p>Stack is usually more efficient for variable allocation than heap. There're plenty of articles online explaining why stack allocation is much faster, especially for Golang. So I'm not going to talk about the difference between stack and heap in the article.
+According to &lt;a href="https://golang.org/doc/faq#stack_or_heap">Golang FAQ&lt;/a>,&lt;/p>
+&lt;blockquote>
+&lt;p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.
+I guess most go developers (including me ^) will be curious about how &lt;code>large&lt;/code> is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is &lt;code>10MiB&lt;/code>. This is decided by golang &lt;a href="https://github.com/golang/go/wiki/CompilerOptimizations#escape-analysis">escape analysis&lt;/a>. See &lt;a href="https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19">gc/go.go&lt;/a>. This was &lt;a href="https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56">defined&lt;/a> by the new Go Parser in Go 1.5.
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln"> 2&lt;/span>&lt;span class="c1">// maximum size variable which we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1">// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
+&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">// p := new(T) allocating T on the stack
+&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
+&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
+&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
+&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">13&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+and &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go&lt;/a>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 2&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 3&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln"> 4&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">// Parameters are always passed via the stack.
+&lt;/span>&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 7&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln"> 8&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 9&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">14&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">15&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nf">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">16&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="ln">17&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">18&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln">19&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;code>n *Node&lt;/code> is one node of &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree&lt;/a>. We will only focus on the variable size factor for each node in this post. &lt;code>Slice&lt;/code> will have more factors, including this size factor.
+Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code>maxStackVarSize(10MiB)&lt;/code>, or its type's element width is larger than (or equal) &lt;code>maxImplicitStackVarSize(64kb)&lt;/code>.&lt;/p>
+&lt;/blockquote>
+&lt;p>Now it's time to write some code to verify this. Consider we have a file &lt;code>case.go&lt;/code> with code like below:
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;span class="ln"> 2&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 4&lt;/span>&lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 6&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 9&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
+&lt;span class="ln">10&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262144&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">16&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">17&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
+&lt;span class="ln">18&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">19&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>&lt;/p>
+&lt;p>For &lt;code>var emps [262144]employer&lt;/code>, its type is &lt;code>emps&lt;/code>, and type element is struct &lt;code>employer&lt;/code>. Type &lt;code>employer&lt;/code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code>262,144&lt;/code> will make &lt;code>var emps&lt;/code> to be 10MiB large. I.e, &lt;code>n.Type.Width&lt;/code> is 10MiB, and &lt;code>n.Type.Elem().Width&lt;/code> is 40Byte in this case.
+Then we can run command:
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ go build -gcflags=&amp;#34;-m -l&amp;#34; case.go&lt;/code>&lt;/pre>&lt;/div>
+Result is empty:
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go build -gcflags=&amp;#34;-m -l&amp;#34;&lt;/code>&lt;/pre>&lt;/div>
+It means no variable has been moved to heap yet.
+Now lets increase the array size by 1, and we have:
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;span class="ln"> 2&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 4&lt;/span>&lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 6&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 9&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
+&lt;span class="ln">10&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262145&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">16&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">17&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
+&lt;span class="ln">18&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">19&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+With this change, &lt;code>n.Type.Width&lt;/code> value becomes &lt;code>10MiB + 40Byte&lt;/code>. This time, we get:
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go build -gcflags=&amp;#34;-m -l&amp;#34;
+&lt;span class="ln">2&lt;/span># github.com/smiletrl/golang_escape/pkg/example
+&lt;span class="ln">3&lt;/span>./case.go:11:6: moved to heap: emps&lt;/code>&lt;/pre>&lt;/div>
+Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt;/p>
+&lt;h2 id="implicit-variable-size">Implicit variable size&lt;/h2>
+&lt;p>For implicit variable, we get this definition from above research.&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln">1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln">2&lt;/span>&lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+&lt;/span>&lt;span class="ln">3&lt;/span>&lt;span class="c1">// p := new(T) allocating T on the stack
+&lt;/span>&lt;span class="ln">4&lt;/span>&lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
+&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
+&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
+&lt;/span>&lt;span class="ln">7&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln">8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">9&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>The maximum implicit variable size is &lt;code>65,536Byte = 64*1024Byte&lt;/code>. Now let's try some tests with pattern &lt;code>p := &amp;amp;T{}&lt;/code>&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;span class="ln"> 2&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="kn">import&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="s">&amp;#34;fmt&amp;#34;&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span>
+&lt;span class="ln">13&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">empList&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">List&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">1638&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
+&lt;span class="ln">15&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">16&lt;/span>
+&lt;span class="ln">17&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln">18&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getemployerSlice&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">19&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">empList&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;span class="ln">20&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">21&lt;/span> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">emps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">22&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">23&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">24&lt;/span>
+&lt;span class="ln">25&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>In above code, size of &lt;code>empList&lt;/code> is &lt;code>65,520Byte = 40Byte * 1638&lt;/code>, which is smaller than the maximum implicit variable size (65,536). In this case, we expect &lt;code>var emps := &amp;amp;empList{}&lt;/code> not escaping.&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln">1&lt;/span>&lt;span class="nx">smiletrl&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">Rulins&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">MacBook&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Pro&lt;/span> &lt;span class="nx">example&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="k">go&lt;/span> &lt;span class="nx">build&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">gcflags&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;-m -l&amp;#34;&lt;/span> &lt;span class="k">case&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>
+&lt;span class="ln">2&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">command&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">line&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">arguments&lt;/span>
+&lt;span class="ln">3&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="k">case&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">empList&lt;/span>&lt;span class="p">{}&lt;/span> &lt;span class="nx">does&lt;/span> &lt;span class="nx">not&lt;/span> &lt;span class="nx">escape&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>Above result is what we have expected. Now let's increase the size of &lt;code>empList&lt;/code> to &lt;code>65,560Byte = 40Byte * 1639&lt;/code>, which is larger than the maximum implicit variable size (65,536). In this case, we expect &lt;code>var emps := &amp;amp;empList{}&lt;/code> escaping.&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;span class="ln"> 2&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="kn">import&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="s">&amp;#34;fmt&amp;#34;&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span>
+&lt;span class="ln">13&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">empList&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">List&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">1639&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="c1">// increase this size!
+&lt;/span>&lt;span class="ln">15&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">16&lt;/span>
+&lt;span class="ln">17&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln">18&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getemployerSlice&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">19&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">empList&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;span class="ln">20&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">21&lt;/span> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">emps&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">22&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">23&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">24&lt;/span>
+&lt;span class="ln">25&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>And here's the result:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln">1&lt;/span>&lt;span class="nx">smiletrl&lt;/span>&lt;span class="err">@&lt;/span>&lt;span class="nx">Rulins&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">MacBook&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">Pro&lt;/span> &lt;span class="nx">example&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="k">go&lt;/span> &lt;span class="nx">build&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="nx">gcflags&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="s">&amp;#34;-m -l&amp;#34;&lt;/span> &lt;span class="k">case&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>
+&lt;span class="ln">2&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="nx">command&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">line&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nx">arguments&lt;/span>
+&lt;span class="ln">3&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="k">case&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">empList&lt;/span>&lt;span class="p">{}&lt;/span> &lt;span class="nx">escapes&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">heap&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>Cool! &lt;code>&amp;amp;empList&lt;/code> has escaped to the heap as we have expected!&lt;/p>
+&lt;h2 id="extra-verification-of-escaping-result">Extra verification of escaping result&lt;/h2>
+&lt;p>If you are curious about the escape result, here's a bench test approach to verify the result. We are going to write a simple benchmark test to inspect the heap allocation.&lt;/p>
+&lt;p>We will create a test file called &lt;code>case_test.go&lt;/code> for above implicit variable example with &lt;code>empList&lt;/code> size being &lt;code>65,560Byte = 40Byte * 1639&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;span class="ln"> 2&lt;/span>
+&lt;span class="ln"> 3&lt;/span>&lt;span class="kn">import&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="s">&amp;#34;testing&amp;#34;&lt;/span>
+&lt;span class="ln"> 5&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>
+&lt;span class="ln"> 7&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">BenchmarkSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">b&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">testing&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">B&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">n&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">n&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nx">b&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">N&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="nf">getemployerSlice&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>Now let's run the test:&lt;/p>
+&lt;p>&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go test -bench=. -benchmem
+&lt;span class="ln">2&lt;/span>goos: darwin
+&lt;span class="ln">3&lt;/span>goarch: amd64
+&lt;span class="ln">4&lt;/span>pkg: github.com/smiletrl/golang_escape/pkg/example
+&lt;span class="ln">5&lt;/span>cpu: Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz
+&lt;span class="ln">6&lt;/span>BenchmarkSlice-16 139160 8475 ns/op 73728 B/op 1 allocs/op
+&lt;span class="ln">7&lt;/span>PASS
+&lt;span class="ln">8&lt;/span>ok github.com/smiletrl/golang_escape/pkg/example 3.408s&lt;/code>&lt;/pre>&lt;/div>
+Above result shows one heap allocation with &lt;code>1 allocs/op&lt;/code>, and it has allocated &lt;code>73728Byte&lt;/code> for each op, which is a bit larger than &lt;code>empList&lt;/code>'s size. Heap allocation is going to take a bit more memory space than the real variable size for some meta information. You may find more explanation for the &lt;a href="https://golang.org/pkg/testing/#BenchmarkResult">benchmark result here&lt;/a>.&lt;/p>
+&lt;p>Feel free to do some exercise for smaller implicit variable size, and above explicit variable size example.&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Now that we know the exact size of a local &lt;code>large&lt;/code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a &lt;code>reasonable size&lt;/code> to stay within the stack.
+It's not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about that in a separate post.
+You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item></channel></rss>
