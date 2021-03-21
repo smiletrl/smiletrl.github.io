@@ -1,180 +1,101 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang Develop</title><link>https://smiletrl.github.io/</link><description>Recent content on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Tue, 16 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
-&lt;p>This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p>
-&lt;h2 id="terraform-apply-error">Terraform Apply Error&lt;/h2>
-&lt;p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p>
-&lt;blockquote>
-&lt;p>&lt;code>Error:&lt;/code> Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.&lt;/p>
-&lt;/blockquote>
-&lt;p>It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then &lt;code>terraform apply&lt;/code> will not try to create it again.&lt;/p>
-&lt;p>Before we start run import command, it might be a good idea to run &lt;code>aws s3 ls&lt;/code> to get a list of existing s3 buckets at aws. Result is like:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% aws s3 ls
-&lt;span class="ln">2&lt;/span>2021-03-15 12:03:25 s3-bucket-name1
-&lt;span class="ln">3&lt;/span>2021-03-15 13:06:25 s3-bucket-name2
-&lt;span class="ln">4&lt;/span>2021-03-15 13:06:05 s3-bucket-name3&lt;/code>&lt;/pre>&lt;/div>
-&lt;h2 id="terraform-import---method-one">Terraform Import - method one&lt;/h2>
-&lt;p>According to the &lt;a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket">S3 official Doc&lt;/a>, S3 bucket can be imported using&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ terraform import aws_s3_bucket.mybucket s3-bucket-name&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>This command will work for s3 resource declaration like:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name&amp;#34;&lt;/span>
-&lt;span class="ln"> 3&lt;/span>
-&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">server_side_encryption_configuration&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">rule&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">apply_server_side_encryption_by_default&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 7&lt;/span> &lt;span class="na">kms_master_key_id&lt;/span> = &lt;span class="nx">aws_kms_key&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mykey&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
-&lt;span class="ln"> 8&lt;/span> &lt;span class="na">sse_algorithm&lt;/span> = &lt;span class="s2">&amp;#34;aws:kms&amp;#34;&lt;/span>
-&lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">10&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">12&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>There's a &lt;a href="https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5">great article&lt;/a> with more details you may check.&lt;/p>
-&lt;h2 id="terraform-import---method-two">Terraform Import - method two&lt;/h2>
-&lt;p>Method one works fine for one bucket, but in case there're different modules reusing the same S3 bucket resource, then there might be problem to make it work.&lt;/p>
-&lt;p>For example, we have infrastructure directory structure&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>|-- modules
-&lt;span class="ln">2&lt;/span>| |-- s3
-&lt;span class="ln">3&lt;/span>| | |--main.tf
-&lt;span class="ln">4&lt;/span>|-- prod
-&lt;span class="ln">5&lt;/span>| |-- main.tf
-&lt;span class="ln">6&lt;/span>|-- staging
-&lt;span class="ln">7&lt;/span>| |-- main.tf&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>File &lt;code>/modules/s3/main.tf&lt;/code> is having content:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
-&lt;span class="ln">3&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">4&lt;/span>&lt;span class="kr">
-&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="kr">variable&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">6&lt;/span> &lt;span class="na">type&lt;/span> = &lt;span class="nx">string&lt;/span>
-&lt;span class="ln">7&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>File &lt;code>/prod/main.tf&lt;/code> and &lt;code>/staging/main.tf&lt;/code> may have content:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-1&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">2&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
-&lt;span class="ln">3&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name1&amp;#34;&lt;/span>
-&lt;span class="ln">4&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">5&lt;/span>&lt;span class="kr">
-&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-2&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">7&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
-&lt;span class="ln">8&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name2&amp;#34;&lt;/span>
-&lt;span class="ln">9&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>In this case, we will use &lt;a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import&lt;/a> to import the S3 bucket.&lt;/p>
-&lt;p>We may &lt;code>cd&lt;/code> into directory &lt;code>/prod&lt;/code>, and run command like below:&lt;/p>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
-&lt;span class="ln">2&lt;/span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>Now, when we run &lt;code>terraform plan&lt;/code> again, it will not try to create the two buckets any more.&lt;/p>
-&lt;h2 id="conclusion">Conclusion&lt;/h2>
-&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item><item><title/><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
-&lt;p>title = &amp;quot;How large is large enough to allocate a local variable in heap for Golang&amp;quot;&lt;/p>
-&lt;p>+++
-author = &amp;quot;Rulin Tang&amp;quot;
-title = &amp;quot;How large is large enough to allocate a local variable to heap in Golang&amp;quot;
-date = &amp;quot;2021-03-16&amp;quot;
-description = &amp;quot;local large heap allocated variable in golang&amp;quot;
-featured = true
-tags = [
-&amp;quot;heap&amp;quot;,
-&amp;quot;featured&amp;quot;
-]
-categories = [
-&amp;quot;Escape analysis&amp;quot;,
-]
-series = [&amp;quot;Golang&amp;quot;]
-aliases = [&amp;quot;golang-allocate-large-local-variable-to-heap&amp;quot;]
-thumbnail = &amp;quot;images/building.png&amp;quot;
-+++&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang Develop</title><link>https://smiletrl.github.io/</link><description>Recent content on Golang Develop</description><generator>Hugo -- gohugo.io</generator><copyright>Copyright © 2021, all rights reserved.</copyright><lastBuildDate>Thu, 18 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://smiletrl.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>How large is large enough to allocate a local variable to heap in Golang</title><link>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</link><pubDate>Thu, 18 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/golang-local-large-heap-allocated-variable/</guid><description>
 &lt;p>This post shows how a local variable will be &lt;code>large&lt;/code> enough to be allocated to heap.&lt;/p>
 &lt;h2 id="stack-or-heap">Stack or heap&lt;/h2>
 &lt;p>Stack is usually more efficient for variable allocation than heap. There're plenty of articles online explaining why stack allocation is much faster, especially for Golang. So I'm not going to talk about the difference between stack and heap in the article.
 According to &lt;a href="https://golang.org/doc/faq#stack_or_heap">Golang FAQ&lt;/a>,&lt;/p>
 &lt;blockquote>
-&lt;p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.
-I guess most go developers (including me ^) will be curious about how &lt;code>large&lt;/code> is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is &lt;code>10MiB&lt;/code>. This is decided by golang &lt;a href="https://github.com/golang/go/wiki/CompilerOptimizations#escape-analysis">escape analysis&lt;/a>. See &lt;a href="https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19">gc/go.go&lt;/a>. This was &lt;a href="https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56">defined&lt;/a> by the new Go Parser in Go 1.5.
+&lt;p>Also, if a local variable is very large, it might make more sense to store it on the heap rather than the stack.&lt;/p>
+&lt;/blockquote>
+&lt;p>I guess most go developers (including me ^) will be curious about how &lt;code>large&lt;/code> is large that a local variable will be allocated to heap. For Go version 1.5 - 1.16, the answer is &lt;code>10MiB&lt;/code>. This is decided by golang &lt;a href="https://github.com/golang/go/wiki/CompilerOptimizations#escape-analysis">escape analysis&lt;/a>. See &lt;a href="https://github.com/golang/go/blob/release-branch.go1.16/src/cmd/compile/internal/gc/go.go#L19">gc/go.go&lt;/a>. This was &lt;a href="https://go-review.googlesource.com/c/go/+/4851/3/src/cmd/internal/gc/go.go#56">defined&lt;/a> by the new Go Parser in Go 1.5.&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="c1">// maximum size variable which we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1">// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
-&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
-&lt;/span>&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">// p := new(T) allocating T on the stack
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
-&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
-&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
-&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;span class="ln">13&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="c1">// maximum size variable which we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 3&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// This limit is for explicit variable declarations like &amp;#34;var x T&amp;#34; or &amp;#34;x := ...&amp;#34;.
+&lt;/span>&lt;span class="ln"> 4&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln"> 6&lt;/span>
+&lt;span class="ln"> 7&lt;/span> &lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := new(T) allocating T on the stack
+&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
+&lt;/span>&lt;span class="ln">10&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
+&lt;/span>&lt;span class="ln">11&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
+&lt;/span>&lt;span class="ln">12&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln">13&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">14&lt;/span>&lt;span class="p">)&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
-and &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go&lt;/a>
-&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 2&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;p>and &lt;a href="https://github.com/golang/go/blob/release-branch.go1.15/src/cmd/compile/internal/gc/esc.go#L172">gc/esc.go&lt;/a>&lt;/p>
+&lt;p>&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">mustHeapAlloc&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Node&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="kc">nil&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;span class="ln"> 3&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln"> 4&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 5&lt;/span>&lt;span class="c1">// Parameters are always passed via the stack.
-&lt;/span>&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="c1">// Parameters are always passed via the stack.
+&lt;/span>&lt;span class="ln"> 6&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONAME&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAM&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Class&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">PPARAMOUT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;span class="ln"> 7&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
-&lt;span class="ln"> 8&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="p">&amp;gt;&lt;/span> &lt;span class="nx">maxStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;span class="ln">10&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">12&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">ONEW&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OPTRLIT&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Type&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Elem&lt;/span>&lt;span class="p">().&lt;/span>&lt;span class="nx">Width&lt;/span> &lt;span class="o">&amp;gt;=&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;span class="ln">13&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">14&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">15&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nf">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">n&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Op&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">OMAKESLICE&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nf">isSmallMakeSlice&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
 &lt;span class="ln">16&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
-&lt;span class="ln">17&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">18&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">18&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
 &lt;span class="ln">19&lt;/span>&lt;span class="p">}&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
 &lt;code>n *Node&lt;/code> is one node of &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Syntax tree&lt;/a>. We will only focus on the variable size factor for each node in this post. &lt;code>Slice&lt;/code> will have more factors, including this size factor.
 Combining the two code blocks, a variable will be moved to heap when its type width is larger than &lt;code>maxStackVarSize(10MiB)&lt;/code>, or its type's element width is larger than (or equal) &lt;code>maxImplicitStackVarSize(64kb)&lt;/code>.&lt;/p>
-&lt;/blockquote>
 &lt;p>Now it's time to write some code to verify this. Consider we have a file &lt;code>case.go&lt;/code> with code like below:
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
 &lt;span class="ln"> 2&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 4&lt;/span>&lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
-&lt;span class="ln"> 5&lt;/span>&lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 3&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
 &lt;span class="ln"> 6&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">//go:noinline
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262144&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">14&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">16&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">17&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
-&lt;span class="ln">18&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">19&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;span class="ln"> 7&lt;/span>
+&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262144&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262144&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">16&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">18&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
+&lt;span class="ln">19&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">20&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>&lt;/p>
 &lt;p>For &lt;code>var emps [262144]employer&lt;/code>, its type is &lt;code>emps&lt;/code>, and type element is struct &lt;code>employer&lt;/code>. Type &lt;code>employer&lt;/code> width is 40 byte in my machine(amd64), containing 2 strings(16 bytes each), 1 int(8 bytes). Array size &lt;code>262,144&lt;/code> will make &lt;code>var emps&lt;/code> to be 10MiB large. I.e, &lt;code>n.Type.Width&lt;/code> is 10MiB, and &lt;code>n.Type.Elem().Width&lt;/code> is 40Byte in this case.
-Then we can run command:
+Then we can run command:&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ go build -gcflags=&amp;#34;-m -l&amp;#34; case.go&lt;/code>&lt;/pre>&lt;/div>
-Result is empty:
+&lt;p>Result is empty:&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go build -gcflags=&amp;#34;-m -l&amp;#34;&lt;/code>&lt;/pre>&lt;/div>
-It means no variable has been moved to heap yet.
-Now lets increase the array size by 1, and we have:
+&lt;p>It means no variable has been moved to heap yet.
+Now lets increase the array size by 1, and we have:&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
 &lt;span class="ln"> 2&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">employer&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 3&lt;/span>&lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
-&lt;span class="ln"> 4&lt;/span>&lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
-&lt;span class="ln"> 5&lt;/span>&lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 3&lt;/span> &lt;span class="nx">Name&lt;/span> &lt;span class="kt">string&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">Age&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">Title&lt;/span> &lt;span class="kt">string&lt;/span>
 &lt;span class="ln"> 6&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln"> 7&lt;/span>&lt;span class="c1">//go:noinline
-&lt;/span>&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln"> 9&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
-&lt;span class="ln">10&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262145&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
-&lt;span class="ln">11&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
-&lt;span class="ln">12&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">13&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">14&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;span class="ln">15&lt;/span> &lt;span class="p">}&lt;/span>
-&lt;span class="ln">16&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">17&lt;/span>&lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
-&lt;span class="ln">18&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;span class="ln">19&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
+&lt;span class="ln"> 7&lt;/span>
+&lt;span class="ln"> 8&lt;/span>&lt;span class="c1">//go:noinline
+&lt;/span>&lt;span class="ln"> 9&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">getEmployerArray&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">emps&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">262145&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">employer&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="p">&amp;lt;&lt;/span> &lt;span class="mi">262145&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">12&lt;/span> &lt;span class="nx">emps&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">employer&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;span class="ln">13&lt;/span> &lt;span class="nx">Name&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;adam&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">14&lt;/span> &lt;span class="nx">Age&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">23&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">15&lt;/span> &lt;span class="nx">Title&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s">&amp;#34;ceo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="ln">16&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">17&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">18&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">emps&lt;/span>
+&lt;span class="ln">19&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">20&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{}&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
-With this change, &lt;code>n.Type.Width&lt;/code> value becomes &lt;code>10MiB + 40Byte&lt;/code>. This time, we get:
+&lt;p>With this change, &lt;code>n.Type.Width&lt;/code> value becomes &lt;code>10MiB + 40Byte&lt;/code>. This time, we get:
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go build -gcflags=&amp;#34;-m -l&amp;#34;
 &lt;span class="ln">2&lt;/span># github.com/smiletrl/golang_escape/pkg/example
 &lt;span class="ln">3&lt;/span>./case.go:11:6: moved to heap: emps&lt;/code>&lt;/pre>&lt;/div>
@@ -182,13 +103,13 @@ Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt
 &lt;h2 id="implicit-variable-size">Implicit variable size&lt;/h2>
 &lt;p>For implicit variable, we get this definition from above research.&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln">1&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="p">(&lt;/span>
-&lt;span class="ln">2&lt;/span>&lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
-&lt;/span>&lt;span class="ln">3&lt;/span>&lt;span class="c1">// p := new(T) allocating T on the stack
-&lt;/span>&lt;span class="ln">4&lt;/span>&lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
-&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
-&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
-&lt;/span>&lt;span class="ln">7&lt;/span>&lt;span class="c1">// Note: the flag smallframes can update this value.
-&lt;/span>&lt;span class="ln">8&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="ln">2&lt;/span> &lt;span class="c1">// maximum size of implicit variables that we will allocate on the stack.
+&lt;/span>&lt;span class="ln">3&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := new(T) allocating T on the stack
+&lt;/span>&lt;span class="ln">4&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// p := &amp;amp;T{} allocating T on the stack
+&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := make([]T, n) allocating [n]T on the stack
+&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// s := []byte(&amp;#34;...&amp;#34;) allocating [n]byte on the stack
+&lt;/span>&lt;span class="ln">7&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// Note: the flag smallframes can update this value.
+&lt;/span>&lt;span class="ln">8&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">maxImplicitStackVarSize&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">int64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1024&lt;/span>&lt;span class="p">)&lt;/span>
 &lt;span class="ln">9&lt;/span>&lt;span class="p">)&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
 &lt;p>The maximum implicit variable size is &lt;code>65,536Byte = 64*1024Byte&lt;/code>. Now let's try some tests with pattern &lt;code>p := &amp;amp;T{}&lt;/code>&lt;/p>
@@ -272,7 +193,7 @@ Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt
 &lt;span class="ln">11&lt;/span>&lt;span class="p">}&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
 &lt;p>Now let's run the test:&lt;/p>
-&lt;p>&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go test -bench=. -benchmem
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>smiletrl@Rulins-MacBook-Pro example % go test -bench=. -benchmem
 &lt;span class="ln">2&lt;/span>goos: darwin
 &lt;span class="ln">3&lt;/span>goarch: amd64
 &lt;span class="ln">4&lt;/span>pkg: github.com/smiletrl/golang_escape/pkg/example
@@ -280,9 +201,73 @@ Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt
 &lt;span class="ln">6&lt;/span>BenchmarkSlice-16 139160 8475 ns/op 73728 B/op 1 allocs/op
 &lt;span class="ln">7&lt;/span>PASS
 &lt;span class="ln">8&lt;/span>ok github.com/smiletrl/golang_escape/pkg/example 3.408s&lt;/code>&lt;/pre>&lt;/div>
-Above result shows one heap allocation with &lt;code>1 allocs/op&lt;/code>, and it has allocated &lt;code>73728Byte&lt;/code> for each op, which is a bit larger than &lt;code>empList&lt;/code>'s size. Heap allocation is going to take a bit more memory space than the real variable size for some meta information. You may find more explanation for the &lt;a href="https://golang.org/pkg/testing/#BenchmarkResult">benchmark result here&lt;/a>.&lt;/p>
+&lt;p>Above result shows one heap allocation with &lt;code>1 allocs/op&lt;/code>, and it has allocated &lt;code>73728Byte&lt;/code> for each op, which is a bit larger than &lt;code>empList&lt;/code>'s size. Heap allocation is going to take a bit more memory space than the real variable size for some meta information. You may find more explanation for the &lt;a href="https://golang.org/pkg/testing/#BenchmarkResult">benchmark result here&lt;/a>.&lt;/p>
 &lt;p>Feel free to do some exercise for smaller implicit variable size, and above explicit variable size example.&lt;/p>
 &lt;h2 id="conclusion">Conclusion&lt;/h2>
 &lt;p>Now that we know the exact size of a local &lt;code>large&lt;/code> heap allocated variable, we can be sure of writing code with this size in mind, and try to keep a variable in a &lt;code>reasonable size&lt;/code> to stay within the stack.
 It's not saying we can allocate as many 10MiB (for Go version 1.5 - 1.16) local variables in stack as we want. Stack for each Goroutine has its max size limit as well. We may talk about that in a separate post.
-You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item></channel></rss>
+You may find more explanation and escape examples at &lt;a href="https://github.com/smiletrl/golang_escape">https://github.com/smiletrl/golang_escape&lt;/a>.&lt;/p></description></item><item><title>Terraform import aws s3 bucket</title><link>https://smiletrl.github.io/post/terraform-import-s3-bucket/</link><pubDate>Tue, 16 Mar 2021 00:00:00 +0000</pubDate><guid>https://smiletrl.github.io/post/terraform-import-s3-bucket/</guid><description>
+&lt;p>This post shows two possible methods to import aws s3 buckets into terraform state.&lt;/p>
+&lt;h2 id="terraform-apply-error">Terraform Apply Error&lt;/h2>
+&lt;p>It's common to get terraform s3 bucket error when we start using terraform to work with existing aws account, saying something like:&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;code>Error:&lt;/code> Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.&lt;/p>
+&lt;/blockquote>
+&lt;p>It means this s3 bucket is existing in aws already, and what we can do is to import the S3 bucket back to our terraform state. Then &lt;code>terraform apply&lt;/code> will not try to create it again.&lt;/p>
+&lt;p>Before we start run import command, it might be a good idea to run &lt;code>aws s3 ls&lt;/code> to get a list of existing s3 buckets at aws. Result is like:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% aws s3 ls
+&lt;span class="ln">2&lt;/span>2021-03-15 12:03:25 s3-bucket-name1
+&lt;span class="ln">3&lt;/span>2021-03-15 13:06:25 s3-bucket-name2
+&lt;span class="ln">4&lt;/span>2021-03-15 13:06:05 s3-bucket-name3&lt;/code>&lt;/pre>&lt;/div>
+&lt;h2 id="terraform-import---method-one">Terraform Import - method one&lt;/h2>
+&lt;p>According to the &lt;a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket">S3 official Doc&lt;/a>, S3 bucket can be imported using&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>$ terraform import aws_s3_bucket.mybucket s3-bucket-name&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>This command will work for s3 resource declaration like:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln"> 1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name&amp;#34;&lt;/span>
+&lt;span class="ln"> 3&lt;/span>
+&lt;span class="ln"> 4&lt;/span> &lt;span class="nx">server_side_encryption_configuration&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 5&lt;/span> &lt;span class="nx">rule&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 6&lt;/span> &lt;span class="nx">apply_server_side_encryption_by_default&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln"> 7&lt;/span> &lt;span class="na">kms_master_key_id&lt;/span> = &lt;span class="nx">aws_kms_key&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mykey&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arn&lt;/span>
+&lt;span class="ln"> 8&lt;/span> &lt;span class="na">sse_algorithm&lt;/span> = &lt;span class="s2">&amp;#34;aws:kms&amp;#34;&lt;/span>
+&lt;span class="ln"> 9&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">10&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">11&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="ln">12&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>There's a &lt;a href="https://medium.com/faun/importing-aws-resources-into-terraform-52139c1630a5">great article&lt;/a> with more details you may check.&lt;/p>
+&lt;h2 id="terraform-import---method-two">Terraform Import - method two&lt;/h2>
+&lt;p>Method one works fine for one bucket, but in case there're different modules reusing the same S3 bucket resource, then there might be problem to make it work.&lt;/p>
+&lt;p>For example, we have infrastructure directory structure&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>|-- modules
+&lt;span class="ln">2&lt;/span>| |-- s3
+&lt;span class="ln">3&lt;/span>| | |--main.tf
+&lt;span class="ln">4&lt;/span>|-- prod
+&lt;span class="ln">5&lt;/span>| |-- main.tf
+&lt;span class="ln">6&lt;/span>|-- staging
+&lt;span class="ln">7&lt;/span>| |-- main.tf&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>File &lt;code>/modules/s3/main.tf&lt;/code> is having content:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">resource&lt;/span> &lt;span class="s2">&amp;#34;aws_s3_bucket&amp;#34;&lt;/span> &lt;span class="s2">&amp;#34;mybucket&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">2&lt;/span> &lt;span class="na">bucket&lt;/span> = &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nb">var&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;span class="ln">3&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">4&lt;/span>&lt;span class="kr">
+&lt;/span>&lt;span class="ln">5&lt;/span>&lt;span class="kr">variable&lt;/span> &lt;span class="s2">&amp;#34;name&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">6&lt;/span> &lt;span class="na">type&lt;/span> = &lt;span class="nx">string&lt;/span>
+&lt;span class="ln">7&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>File &lt;code>/prod/main.tf&lt;/code> and &lt;code>/staging/main.tf&lt;/code> may have content:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-terraform" data-lang="terraform">&lt;span class="ln">1&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-1&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">2&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
+&lt;span class="ln">3&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name1&amp;#34;&lt;/span>
+&lt;span class="ln">4&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="ln">5&lt;/span>&lt;span class="kr">
+&lt;/span>&lt;span class="ln">6&lt;/span>&lt;span class="kr">module&lt;/span> &lt;span class="s2">&amp;#34;s3-bucket-2&amp;#34;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="ln">7&lt;/span> &lt;span class="na">source&lt;/span> = &lt;span class="s2">&amp;#34;../modules/s3&amp;#34;&lt;/span>
+&lt;span class="ln">8&lt;/span> &lt;span class="na">name&lt;/span> = &lt;span class="s2">&amp;#34;s3-bucket-name2&amp;#34;&lt;/span>
+&lt;span class="ln">9&lt;/span>&lt;span class="p">}&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>In this case, we will use &lt;a href="https://www.terraform.io/docs/cli/commands/import.html#example-import-into-module">module import&lt;/a> to import the S3 bucket.&lt;/p>
+&lt;p>We may &lt;code>cd&lt;/code> into directory &lt;code>/prod&lt;/code>, and run command like below:&lt;/p>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="ln">1&lt;/span>% terraform import module.s3-bucket-1.aws_s3_bucket.mybucket s3-bucket-name1
+&lt;span class="ln">2&lt;/span>% terraform import module.s3-bucket-2.aws_s3_bucket.mybucket s3-bucket-name2&lt;/code>&lt;/pre>&lt;/div>
+&lt;p>Now, when we run &lt;code>terraform plan&lt;/code> again, it will not try to create the two buckets any more.&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>It's common to have other types of resources existing in aws already, we may use a similar module import method to get it working with terraform :)&lt;/p></description></item></channel></rss>
