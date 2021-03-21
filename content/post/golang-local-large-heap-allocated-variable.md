@@ -238,9 +238,9 @@ smiletrl@Rulins-MacBook-Pro example % go build -gcflags="-m -l" case.go
  
 Cool! `&empList` has escaped to the heap as we have expected!
  
-## Extra verification of escaping result
+## Verification of escaping result
  
-If you are curious about the escape result, here's a bench test approach to verify the result. We are going to write a simple benchmark test to inspect the heap allocation.
+Unlike `moved to heap: xx`,  `xx escapes to heap` doesn't mean this variable is really being moved to heap. It only indicates this variable's scope is out of current caller. If you are curious about the escape result, here's a bench test approach to verify it. We are going to write a simple benchmark test to inspect the heap allocation.
  
 We will create a test file called `case_test.go` for above implicit variable example with  `empList` size being `65,560Byte = 40Byte * 1639`.
  
