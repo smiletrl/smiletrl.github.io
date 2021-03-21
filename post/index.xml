@@ -177,8 +177,8 @@ Cool! We see the variable &lt;code>var emps&lt;/code> has been moved to heap!&lt
 &lt;span class="ln">3&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="k">case&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">go&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">empList&lt;/span>&lt;span class="p">{}&lt;/span> &lt;span class="nx">escapes&lt;/span> &lt;span class="nx">to&lt;/span> &lt;span class="nx">heap&lt;/span>
 &lt;/code>&lt;/pre>&lt;/div>
 &lt;p>Cool! &lt;code>&amp;amp;empList&lt;/code> has escaped to the heap as we have expected!&lt;/p>
-&lt;h2 id="extra-verification-of-escaping-result">Extra verification of escaping result&lt;/h2>
-&lt;p>If you are curious about the escape result, here's a bench test approach to verify the result. We are going to write a simple benchmark test to inspect the heap allocation.&lt;/p>
+&lt;h2 id="verification-of-escaping-result">Verification of escaping result&lt;/h2>
+&lt;p>Unlike &lt;code>moved to heap: xx&lt;/code>, &lt;code>xx escapes to heap&lt;/code> doesn't mean this variable is really being moved to heap. It only indicates this variable's scope is out of current caller. If you are curious about the escape result, here's a bench test approach to verify it. We are going to write a simple benchmark test to inspect the heap allocation.&lt;/p>
 &lt;p>We will create a test file called &lt;code>case_test.go&lt;/code> for above implicit variable example with &lt;code>empList&lt;/code> size being &lt;code>65,560Byte = 40Byte * 1639&lt;/code>.&lt;/p>
 &lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-golang" data-lang="golang">&lt;span class="ln"> 1&lt;/span>&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
 &lt;span class="ln"> 2&lt;/span>
