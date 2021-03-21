@@ -9,7 +9,7 @@ tags = [
     "featured"
 ]
 categories = [
-    "terraform",
+    "Terraform",
 ]
 series = ["Terraform"]
 aliases = ["terraform-import-aws-s3-bucket"]
